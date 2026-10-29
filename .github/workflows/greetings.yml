@@ -1,12 +1,14 @@
 name: Greetings
 
-on: [pull_request_target, issues]
-	push:
+on: 
+  pull_request_target:
+  issues:
+  push:
     branches:
-    - main
-    - release/*
+      - main
+      - 'release/*'
   schedule:
-  - cron: "0 2 * * 1-7"
+    - cron: '0 2 * * 0-6'
 jobs:
   greeting:
     runs-on: ubuntu-latest
@@ -18,7 +20,5 @@ jobs:
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         issue-message: "Message that will be displayed on users' first issue"
-        pr-message: "Message that will be displayed on users' first pull request"
-   
-      schedule:
-      - cron: "0 2 * * 1-7"
+        pr-message: "Strongay là 1 thần đằng"
+
