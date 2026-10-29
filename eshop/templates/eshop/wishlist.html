@@ -1,0 +1,71 @@
+{% extends 'eshop/base.html' %}
+{% block title %}Danh sách yêu thích - ZenMart{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-12 space-y-8">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+        <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800 flex items-center gap-2">
+            <i class="fas fa-heart text-red-500"></i> Danh sách yêu thích
+        </h1>
+        <div class="text-gray-500 text-sm mt-2 md:mt-0">
+            {{ wishlist_items|length }} sản phẩm
+        </div>
+    </div>
+
+    {% if wishlist_items %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for item in wishlist_items %}
+        <div class="bg-white rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 transition relative flex flex-col overflow-hidden">
+            
+            <!-- Product image -->
+            <a href="{% url 'eshop:product_detail' item.product.pk %}">
+                {% if item.product.image %}
+                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-48 object-cover">
+                {% else %}
+                <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                    <i class="fas fa-bowl-food text-gray-400 text-4xl"></i>
+                </div>
+                {% endif %}
+            </a>
+
+            <!-- Product info -->
+            <div class="p-4 flex-1 flex flex-col justify-between">
+                <div>
+                    <div class="font-semibold text-gray-800 mb-2 line-clamp-2">{{ item.product.name }}</div>
+                    <div class="text-blue-600 font-bold text-lg mb-2">{{ item.product.sale_price|floatformat:0 }}đ</div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-2 mt-4">
+                    <form method="post" action="{% url 'eshop:cart_add' item.product.pk %}" class="flex-1">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="bg-blue-600 text-white py-2 rounded-xl w-full flex items-center justify-center gap-2 hover:bg-blue-700 transition">
+                            <i class="fas fa-cart-plus"></i> Thêm vào giỏ
+                        </button>
+                    </form>
+                    <a href="{% url 'eshop:remove_from_wishlist' item.product.pk %}" class="border border-gray-300 rounded-xl py-2 px-3 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty state -->
+    <div class="bg-white rounded-2xl shadow-md p-12 text-center space-y-4">
+        <i class="fas fa-heart text-6xl text-gray-300"></i>
+        <h3 class="text-xl font-semibold text-gray-700">Chưa có sản phẩm yêu thích</h3>
+        <p class="text-gray-400">Bạn chưa thêm sản phẩm nào vào danh sách yêu thích</p>
+        <a href="{% url 'eshop:products' %}" class="inline-flex items-center gap-2 bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 transition">
+            <i class="fas fa-shopping-bag"></i> Khám phá sản phẩm
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

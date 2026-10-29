@@ -1,0 +1,109 @@
+{% extends 'eshop/base.html' %}
+{% load static %}
+{% block title %}Giỏ Hàng - ZenMart{% endblock %}
+{% block content %}
+
+<div class="max-w-7xl mx-auto px-6 py-12 space-y-8">
+
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+        <i class="fas fa-shopping-cart text-blue-600"></i> Giỏ Hàng
+    </h1>
+
+    {% if cart|length > 0 %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Cart Items -->
+        <div class="lg:col-span-2 space-y-4">
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white rounded-xl shadow">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="p-3 text-left text-gray-600">Sản phẩm</th>
+                            <th class="p-3 text-center text-gray-600">Giá</th>
+                            <th class="p-3 text-center text-gray-600">Số lượng</th>
+                            <th class="p-3 text-center text-gray-600">Thành tiền</th>
+                            <th class="p-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart %}
+                        <tr class="border-b hover:bg-gray-50 transition">
+                            <td class="p-3">
+                                <div class="flex items-center gap-4">
+                                    {% if item.product.image and item.product.image.name %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-20 h-20 object-cover rounded-lg">
+                                    {% else %}
+                                    <div class="w-20 h-20 bg-gray-100 flex items-center justify-center rounded-lg text-gray-400 text-2xl">
+                                        <i class="fas fa-bowl-food"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="font-semibold text-gray-800">{{ item.product.name }}</div>
+                                        <div class="text-sm text-gray-500">{{ item.product.category.name }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-3 text-center font-semibold text-blue-600">{{ item.price|floatformat:0 }}đ</td>
+                            <td class="p-3 text-center">
+                                <form method="post" action="{% url 'eshop:cart_update' item.product.pk %}" class="inline-flex items-center gap-1">
+                                    {% csrf_token %}
+                                    <button type="submit" name="quantity" value="{{ item.quantity|add:"-1" }}" class="w-6 h-6 bg-gray-200 rounded hover:bg-gray-300 transition">−</button>
+                                    <input type="text" name="quantity" value="{{ item.quantity }}" class="w-10 text-center border rounded text-sm" readonly>
+                                    <button type="submit" name="quantity" value="{{ item.quantity|add:"1" }}" class="w-6 h-6 bg-gray-200 rounded hover:bg-gray-300 transition">+</button>
+                                </form>
+                            </td>
+                            <td class="p-3 text-center font-semibold text-gray-800">{{ item.total_price|floatformat:0 }}đ</td>
+                            <td class="p-3 text-center">
+                                <form method="post" action="{% url 'eshop:cart_remove' item.product.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="bg-white p-6 rounded-2xl shadow-lg h-fit space-y-4">
+            <h3 class="font-bold text-lg flex items-center gap-2">
+                <i class="fas fa-receipt text-blue-600"></i> Tóm Tắt Đơn Hàng
+            </h3>
+            <div class="flex justify-between text-gray-600">
+                <span>Tạm tính ({{ cart|length }} sản phẩm)</span>
+                <span>{{ cart.get_total_price|floatformat:0 }}đ</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+                <span>Phí giao hàng</span>
+                <span class="text-green-500 font-semibold">Miễn phí</span>
+            </div>
+            <div class="flex justify-between font-bold text-gray-800 text-lg">
+                <span>Tổng cộng</span>
+                <span>{{ cart.get_total_price|floatformat:0 }}đ</span>
+            </div>
+            <a href="{% url 'eshop:checkout' %}" class="block w-full text-center bg-gradient-to-r from-blue-600 to-purple-700 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition">
+                <i class="fas fa-lock mr-2"></i> Thanh Toán
+            </a>
+            <a href="{% url 'eshop:products' %}" class="block text-center text-blue-600 font-semibold hover:underline">
+                ← Tiếp tục mua sắm
+            </a>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Empty state -->
+    <div class="flex flex-col items-center justify-center py-24 space-y-4 text-gray-400">
+        <i class="fas fa-shopping-cart text-6xl"></i>
+        <h3 class="text-xl font-semibold">Giỏ hàng trống</h3>
+        <p>Hãy thêm sản phẩm vào giỏ hàng</p>
+        <a href="{% url 'eshop:products' %}" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition inline-flex items-center gap-2">
+            <i class="fas fa-shopping-bag"></i> Mua Sắm Ngay
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

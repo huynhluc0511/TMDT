@@ -1,0 +1,68 @@
+{% extends 'eshop/base.html' %}
+{% block title %}Đăng Nhập{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div class="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full space-y-6">
+
+        <!-- Header -->
+        <div class="text-center space-y-3">
+            <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-purple-700 flex items-center justify-center">
+                <i class="fas fa-user text-white text-2xl"></i>
+            </div>
+            <h2 class="text-2xl font-extrabold text-gray-800">Đăng Nhập</h2>
+            <p class="text-gray-500 text-sm">Đăng nhập để theo dõi đơn hàng và mua sắm</p>
+        </div>
+
+        <!-- Non-field errors -->
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 text-red-600 text-sm p-3 rounded-md">
+            {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Form -->
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <!-- Email -->
+            <div>
+                <label class="block text-sm font-medium mb-1">{{ form.email.label }}</label>
+                <input type="email" name="{{ form.email.name }}" value="{{ form.email.value|default_if_none:'' }}" 
+                       placeholder="Nhập email" required
+                       class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                {% if form.email.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Password -->
+            <div>
+                <label class="block text-sm font-medium mb-1">{{ form.password.label }}</label>
+                <input type="password" name="{{ form.password.name }}" 
+                       placeholder="Nhập mật khẩu" required
+                       class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                {% if form.password.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.password.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-700 text-white py-3 rounded-xl font-semibold hover:opacity-90 transition">
+                <i class="fas fa-sign-in-alt"></i> Đăng Nhập
+            </button>
+        </form>
+
+        <!-- Links -->
+        <p class="text-center text-gray-500 text-sm mt-2">
+            Chưa có tài khoản? 
+            <a href="{% url 'eshop:register' %}" class="text-blue-600 font-semibold hover:underline">Đăng ký ngay</a>
+        </p>
+        <p class="text-center text-gray-500 text-xs mt-1">
+            <a href="{% url 'eshop:forgot_password' %}" class="hover:underline"><i class="fas fa-key"></i> Quên mật khẩu?</a>
+        </p>
+
+    </div>
+</div>
+{% endblock %}

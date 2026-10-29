@@ -1,0 +1,94 @@
+{% extends 'eshop/base.html' %}
+{% load static %}
+{% block title %}Trang cá nhân - ZenMart{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-12 space-y-8">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-2">
+            <i class="fas fa-user text-blue-600"></i> Thông tin cá nhân
+        </h1>
+        <div class="flex gap-2">
+            <a href="{% url 'eshop:profile' %}" class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition flex items-center gap-2">
+                <i class="fas fa-edit"></i> Chỉnh sửa thông tin
+            </a>
+            <form method="post" action="{% url 'eshop:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition flex items-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Left: Avatar & basic info -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 flex flex-col items-center space-y-4">
+            {% if user.avatar %}
+            <img src="{{ user.avatar.url }}" class="w-32 h-32 rounded-full object-cover border-4 border-blue-100">
+            {% else %}
+            <div class="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 text-5xl">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            {% endif %}
+            <h2 class="text-xl font-bold text-gray-800">{{ user.first_name|default:user.email }}</h2>
+            <p class="text-gray-500 text-sm">{{ user.email }}</p>
+            <p class="text-gray-500 text-sm">{{ user.phone|default:"Chưa có số điện thoại" }}</p>
+        </div>
+
+        <!-- Middle: Change Password -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 space-y-4">
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-key text-blue-600"></i> Thay đổi mật khẩu
+            </h3>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-medium mb-1">Mật khẩu cũ</label>
+                    <input type="password" name="old_password" required
+                           class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Mật khẩu mới</label>
+                    <input type="password" name="new_password" required
+                           class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Nhập lại mật khẩu mới</label>
+                    <input type="password" name="confirm_password" required
+                           class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <button type="submit" name="change_password" class="w-full bg-gradient-to-r from-blue-600 to-purple-700 text-white py-2 rounded-xl font-semibold hover:opacity-90 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i> Cập nhật mật khẩu
+                </button>
+            </form>
+        </div>
+
+        <!-- Right: Recent Orders -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 space-y-4">
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-receipt text-blue-600"></i> Đơn hàng gần đây
+            </h3>
+            {% if orders %}
+            <div class="space-y-2">
+                {% for order in orders %}
+                <a href="{% url 'eshop:order_detail' order.pk %}" class="block border rounded-lg p-3 hover:bg-gray-50 transition flex justify-between items-center">
+                    <div>
+                        <span class="font-semibold text-gray-800">#{{ order.order_id }}</span>
+                        <span class="text-gray-500 text-sm ml-2">{{ order.created_at|date:'d/m/Y' }}</span>
+                    </div>
+                    <span class="text-blue-600 font-semibold">{{ order.total_amount|floatformat:0 }}đ</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm text-center py-4">Chưa có đơn hàng nào</p>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
