@@ -238,9 +238,10 @@
     var custLat={{ order.lat }}, custLng={{ order.lng }};
     var map=L.map('delivery-map',{center:[(storeLat+custLat)/2,(storeLng+custLng)/2],zoom:13,zoomControl:true});
     setTimeout(function(){map.invalidateSize()},200);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
-        attribution:'&copy; OpenStreetMap &copy; CARTO',subdomains:'abcd',maxZoom:20
-    }).addTo(map);
+    L.tileLayer('https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png?key=cb1_4ymt_1_3adba3efa00d122eb84e30f4', {
+    maxZoom: 20,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);;
 
     var storeIcon=L.divIcon({className:'',html:'<div style="background:linear-gradient(135deg,#667eea,#764ba2);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,.3)"><i class="fas fa-store"></i></div>',iconSize:[34,34],iconAnchor:[17,17]});
     var custIcon=L.divIcon({className:'',html:'<div style="background:linear-gradient(135deg,#2196F3,#03A9F4);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,.3)"><i class="fas fa-home"></i></div>',iconSize:[34,34],iconAnchor:[17,17]});
@@ -263,9 +264,10 @@
     var storeLat={{ nearest_store.latitude }}, storeLng={{ nearest_store.longitude }};
     var map=L.map('delivery-map',{center:[storeLat,storeLng],zoom:15,zoomControl:true});
     setTimeout(function(){map.invalidateSize()},200);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
-        attribution:'&copy; OpenStreetMap &copy; CARTO',subdomains:'abcd',maxZoom:20
-    }).addTo(map);
+    L.tileLayer('https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png?key=cb1_4ymt_1_3adba3efa00d122eb84e30f4', {
+    maxZoom: 20,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);
     var storeIcon=L.divIcon({className:'',html:'<div style="background:linear-gradient(135deg,#667eea,#764ba2);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,.3)"><i class="fas fa-store"></i></div>',iconSize:[34,34],iconAnchor:[17,17]});
     L.marker([storeLat,storeLng],{icon:storeIcon}).addTo(map).bindPopup('<b>{{ nearest_store.name|escapejs }}</b><br>{{ nearest_store.address|escapejs }}').openPopup();
 })();
@@ -273,9 +275,10 @@
 (function(){
     var map=L.map('delivery-map',{center:[10.7769,106.7009],zoom:12,zoomControl:true});
     setTimeout(function(){map.invalidateSize()},200);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
-        attribution:'&copy; OpenStreetMap &copy; CARTO',subdomains:'abcd',maxZoom:20
-    }).addTo(map);
+    L.tileLayer('https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png?key=cb1_4ymt_1_3adba3efa00d122eb84e30f4', {
+    maxZoom: 20,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);
     var stores=[
         {% for s in stores %}{"name":"{{ s.name|escapejs }}","lat":{{ s.latitude }},"lng":{{ s.longitude }}}{% if not forloop.last %},{% endif %}{% endfor %}
     ];

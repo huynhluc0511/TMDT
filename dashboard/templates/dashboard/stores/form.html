@@ -72,7 +72,12 @@
 var lat = parseFloat(document.getElementById('id_latitude')?.value) || 10.7769;
 var lng = parseFloat(document.getElementById('id_longitude')?.value) || 106.7009;
 var map = L.map('pickMap').setView([lat, lng], 13);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png', {attribution:'© OpenStreetMap, © CartoDB',maxZoom:20}).addTo(map);
+
+// Esri Light Gray Canvas (Tối giản & Sạch sẽ giống CARTO, Không cần API Key, Không dính lỗi 403)
+L.tileLayer('https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png?key=cb1_4ymt_1_3adba3efa00d122eb84e30f4', {
+    maxZoom: 20,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);
 var marker = L.marker([lat, lng], {draggable: true}).addTo(map);
 
 function setCoords(lat, lng) {
@@ -82,13 +87,11 @@ function setCoords(lat, lng) {
     document.getElementById('lngDisplay').textContent = lng.toFixed(6);
 }
 
-// Cập nhật tọa độ ban đầu
 setCoords(lat, lng);
 
 marker.on('dragend', function(e) { var p = e.target.getLatLng(); setCoords(p.lat, p.lng); reverseGeocodeCoords(p.lat, p.lng); });
 map.on('click', function(e) { marker.setLatLng(e.latlng); setCoords(e.latlng.lat, e.latlng.lng); reverseGeocodeCoords(e.latlng.lat, e.latlng.lng); });
 
-// Debounce timer
 var geocodeTimer = null;
 var geocodeLoading = false;
 var reverseGeocodeLoading = false;
@@ -100,20 +103,23 @@ async function geocodeAddress() {
     geocodeLoading = true;
     document.getElementById('id_address').style.borderColor = '#667eea';
     
+    var searchQuery = addr;
+    if (!searchQuery.toLowerCase().includes('vietnam') && !searchQuery.toLowerCase().includes('việt nam')) {
+        searchQuery += ', Việt Nam';
+    }
+
     try {
-        var res = await fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(addr) + ',Vietnam&limit=1', {
-            timeout: 5000
-        });
+        var res = await fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(searchQuery) + '&limit=1');
         var data = await res.json();
         
-        if (data.length) {
+        if (data && data.length > 0) {
             var lt = parseFloat(data[0].lat), ln = parseFloat(data[0].lon);
             setCoords(lt, ln); 
             marker.setLatLng([lt, ln]); 
             map.setView([lt, ln], 15);
             document.getElementById('id_address').style.borderColor = '#28a745';
         } else { 
-            document.getElementById('id_address').style.borderColor = '#f5365c';
+            document.getElementById('id_address').style.borderColor = '#ffc107';
         }
     } catch(e) {
         console.error('Geocoding error:', e);
@@ -122,30 +128,26 @@ async function geocodeAddress() {
     geocodeLoading = false;
 }
 
-// Reverse geocoding: tọa độ -> địa chỉ
 async function reverseGeocodeCoords(lat, lng) {
     if (reverseGeocodeLoading) return;
     
     reverseGeocodeLoading = true;
     try {
-        var res = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&zoom=18&addressdetails=1', {
-            timeout: 5000
-        });
+        var res = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&zoom=18&addressdetails=1');
         var data = await res.json();
         
         if (data && data.address) {
-            // Xây dựng địa chỉ từ các thành phần
-            var addr = data.address.road || '';
-            if (data.address.house_number) addr = data.address.house_number + ' ' + addr;
-            if (data.address.city) addr += ', ' + data.address.city;
-            if (data.address.province) addr += ', ' + data.address.province;
+            var a = data.address;
+            var road = a.road || a.pedestrian || a.suburb || '';
+            var house = a.house_number ? a.house_number + ' ' : '';
+            var city = a.city || a.town || a.state || '';
             
-            if (addr.trim()) {
-                document.getElementById('id_address').value = addr.trim();
+            var fullAddr = (house + road).trim();
+            if (city) fullAddr += (fullAddr ? ', ' : '') + city;
+            
+            if (fullAddr.trim()) {
+                document.getElementById('id_address').value = fullAddr.trim();
                 document.getElementById('id_address').style.borderColor = '#28a745';
-                setTimeout(function() {
-                    document.getElementById('id_address').style.borderColor = '#e3e6f0';
-                }, 2000);
             }
         }
     } catch(e) {
@@ -154,7 +156,6 @@ async function reverseGeocodeCoords(lat, lng) {
     reverseGeocodeLoading = false;
 }
 
-// Tự động search khi người dùng gõ địa chỉ (với debounce 1 giây)
 document.getElementById('id_address').addEventListener('input', function() {
     clearTimeout(geocodeTimer);
     document.getElementById('id_address').style.borderColor = '#ffc107';

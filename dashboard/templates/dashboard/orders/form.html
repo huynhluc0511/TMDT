@@ -87,10 +87,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Khởi tạo bản đồ
     const map = L.map('map').setView([10.7769, 106.7009], 13); // Mặc định TP.HCM
     
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png', {
-        attribution: '© OpenStreetMap, © CartoDB',
-        maxZoom: 20
-    }).addTo(map);
+   L.tileLayer('https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png?key=cb1_4ymt_1_3adba3efa00d122eb84e30f4', {
+    maxZoom: 20,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);
     
     let marker = null;
     const latField = document.querySelector('input[name="lat"]');

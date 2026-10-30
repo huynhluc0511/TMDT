@@ -231,11 +231,17 @@ let overviewMap, pickMap, pickMarker;
 function initMaps() {
     // Overview map
     overviewMap = L.map('overviewMap').setView([10.7769, 106.7009], 12);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png', {attribution:'© OpenStreetMap, © CartoDB',maxZoom:20}).addTo(overviewMap);
+    L.tileLayer('https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png?key=cb1_4ymt_1_3adba3efa00d122eb84e30f4', {
+        maxZoom: 20,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(overviewMap);
 
     // Picker map
     pickMap = L.map('mapPicker').setView([10.7769, 106.7009], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png', {attribution:'© OpenStreetMap, © CartoDB',maxZoom:20}).addTo(pickMap);
+    L.tileLayer('https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png?key=cb1_4ymt_1_3adba3efa00d122eb84e30f4', {
+        maxZoom: 20,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(pickMap);
     pickMarker = L.marker([10.7769, 106.7009], {draggable:true}).addTo(pickMap);
     pickMap.on('click', function(e) { pickMarker.setLatLng(e.latlng); setPickCoords(e.latlng.lat, e.latlng.lng); });
     pickMarker.on('dragend', function(e) { var p = e.target.getLatLng(); setPickCoords(p.lat, p.lng); });
