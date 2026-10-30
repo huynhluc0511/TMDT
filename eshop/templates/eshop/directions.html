@@ -123,8 +123,9 @@ let storeMarkers = [];
 // Fix: invalidateSize after container is fully rendered
 setTimeout(function(){ map.invalidateSize(); }, 200);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
-    attribution:'&copy; OpenStreetMap &copy; CARTO',subdomains:'abcd',maxZoom:20
+L.tileLayer('https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png?key=cb1_4ymt_1_3adba3efa00d122eb84e30f4', {
+    maxZoom: 20,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
 }).addTo(map);
 
 const storeIcon = L.divIcon({className:'',html:'<div style="background:linear-gradient(135deg,#667eea,#764ba2);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,.3)"><i class="fas fa-store"></i></div>',iconSize:[34,34],iconAnchor:[17,17]});
