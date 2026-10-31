@@ -565,25 +565,25 @@ def checkout(request):
     if request.method == "POST":
         form = CheckoutForm(request.POST)
         if form.is_valid():
-            # 1. Lấy thông tin giảm giá từ Cart
+            # 1. Lấy thông tin Voucher từ Cart (Session)
             voucher_discount = Decimal(str(cart.get_discount()))
             voucher_id = request.session.get("voucher_id")
 
-            # 2. Chuẩn bị data tạo đơn hàng (Chưa cộng ship, chưa trừ voucher)
+            # 2. Chuẩn bị data tạo đơn (Tạm thời gán total_amount bằng tiền hàng)
             order_data = dict(
                 full_name=form.cleaned_data["full_name"],
                 phone_number=form.cleaned_data["phone_number"],
                 shipping_address=form.cleaned_data["shipping_address"],
                 note=form.cleaned_data.get("note", ""),
                 status="pending",
-                total_amount=float(cart.get_total_price()),  # Tạm tính bằng tiền hàng
+                total_amount=float(cart.get_total_price()),
                 delivery_time_slot=form.cleaned_data.get("delivery_time_slot", ""),
-                discount=float(voucher_discount),
+                discount=float(voucher_discount),  # Lưu số tiền giảm vào đơn
             )
             if request.user.is_authenticated:
                 order_data["user"] = request.user
 
-            # 3. Geocode shipping address (Tìm tọa độ)
+            # 3. Geocode địa chỉ (Giữ nguyên code cũ của bạn)
             geo = _geocode_address(form.cleaned_data["shipping_address"])
             if geo:
                 order_data["lat"], order_data["lng"] = geo
@@ -595,14 +595,13 @@ def checkout(request):
                 order_data["lat"] = request.user.lat
                 order_data["lng"] = request.user.lng
 
-            # Khởi tạo Order trước
+            # 4. Tạo Đơn Hàng
             order = Order.objects.create(**order_data)
 
-            # 4. Tính phí ship và tìm cửa hàng gần nhất
+            # 5. Tính phí ship và tìm cửa hàng (Giữ nguyên code cũ)
             shipping_fee = 0
             nearest_store = None
             distance = None
-
             if order.lat and order.lng:
                 nearest_store, distance = find_nearest_store(order.lat, order.lng)
                 if nearest_store:
@@ -612,11 +611,12 @@ def checkout(request):
                     shipping_fee = calculate_shipping_fee(distance)
                     order.shipping_fee = shipping_fee
 
-            # 🔥 5. CẬP NHẬT LẠI TỔNG TIỀN CUỐI CÙNG (Tiền hàng - Voucher + Ship)
+            # 🔥 6. TÍNH LẠI TỔNG TIỀN CUỐI CÙNG: (Đã trừ Voucher + Cộng Ship)
+            # cart.get_final_total() = Tiền hàng - Tiền giảm giá
             order.total_amount = float(cart.get_final_total()) + float(shipping_fee)
             order.save()
 
-            # 6. Tạo OrderItem và Trừ kho sản phẩm
+            # 7. Tạo OrderItem và trừ kho (Giữ nguyên code cũ)
             for item in cart:
                 OrderItem.objects.create(
                     order=order,
@@ -625,10 +625,8 @@ def checkout(request):
                     unit_price=float(item["price"]),
                     total_price=float(item["price"]) * item["quantity"],
                 )
-                # Trừ tồn kho
                 item["product"].reduce_stock(item["quantity"])
 
-            # 7. Cập nhật kho của cửa hàng (nếu có)
             if nearest_store:
                 _update_warehouse_inventory(order, nearest_store)
 
@@ -642,7 +640,7 @@ def checkout(request):
                     pass
                 cart.remove_voucher()
 
-            # 9. Xử lý thanh toán (Payment Method)
+            # 9. Xử lý thanh toán (Giữ nguyên code cũ)
             payment_method = form.cleaned_data.get("payment_method", "cod")
             payment_method_name = {
                 "cod": "Thanh toán khi nhận hàng",
@@ -659,21 +657,19 @@ def checkout(request):
                 status="pending",
             )
 
-            # 10. Xóa giỏ hàng
             cart.clear()
 
-            # 🔥 11. CHUYỂN HƯỚNG NGƯỜI DÙNG (Bắt buộc phải có)
+            # 10. Chuyển hướng (Giữ nguyên code cũ)
             if payment_method == "cod":
                 messages.success(
                     request, "Đặt hàng thành công! Bạn sẽ thanh toán khi nhận hàng."
                 )
                 return redirect("eshop:order_success", order_id=order.order_id)
             else:
-                # Đối với chuyển khoản / MoMo
                 return redirect("eshop:payment_simulate", order_id=order.order_id)
 
     else:
-        # Xử lý GET request (Hiển thị form)
+        # Xử lý GET request
         initial = {}
         if request.user.is_authenticated:
             initial["full_name"] = (
@@ -685,9 +681,9 @@ def checkout(request):
                 initial["shipping_address"] = request.user.address
         form = CheckoutForm(initial=initial)
 
-    # Get delivery time slots
     delivery_slots = get_delivery_time_slots()
 
+    # Trả về view
     return render(
         request,
         "eshop/checkout.html",
@@ -695,6 +691,8 @@ def checkout(request):
             "form": form,
             "cart": cart,
             "delivery_slots": delivery_slots,
+            # 🔥 Truyền thêm ID voucher sang để hiển thị nếu cần
+            "current_voucher_id": request.session.get("voucher_id"),
         },
     )
 

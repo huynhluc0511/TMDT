@@ -66,10 +66,10 @@
         </div>
 
         <!-- Right: Order Summary -->
-        <div class="bg-white p-6 rounded-2xl shadow-xl hover:shadow-2xl transition space-y-4">
-
+        <div class="bg-white p-6 rounded-2xl shadow-xl hover:shadow-2xl transition space-y-4 h-fit">
             <h3 class="text-lg font-semibold flex items-center gap-2"><i class="fas fa-receipt text-blue-600"></i> Đơn Hàng Của Bạn</h3>
-            <div class="space-y-2 mt-4">
+            
+            <div class="space-y-2 mt-4 max-h-64 overflow-y-auto pr-2">
                 {% for item in cart %}
                 <div class="flex items-center gap-3 p-2 border-b">
                     {% if item.product.image and item.product.image.name %}
@@ -88,21 +88,44 @@
                 {% endfor %}
             </div>
 
-            <!-- Discount Code -->
-            <div class="mt-4 flex gap-2">
-                <input type="text" placeholder="Nhập mã giảm giá" class="flex-1 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 transition">
-                <button type="button" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:opacity-90 transition text-sm">Áp dụng</button>
+            <!-- Hiển thị Voucher đã áp dụng -->
+            <div class="mt-4">
+                {% if cart.get_discount > 0 %}
+                <div class="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-lg flex justify-between items-center text-sm">
+                    <span><i class="fas fa-ticket-alt mr-2"></i> Đã áp dụng mã giảm giá</span>
+                    <a href="{% url 'eshop:cart' %}" class="text-blue-600 hover:underline text-xs">Thay đổi</a>
+                </div>
+                {% else %}
+                <div class="bg-gray-50 border border-gray-200 text-gray-600 px-3 py-2 rounded-lg flex justify-between items-center text-sm">
+                    <span><i class="fas fa-ticket-alt mr-2"></i> Chưa áp dụng mã giảm giá</span>
+                    <a href="{% url 'eshop:cart' %}" class="text-blue-600 hover:underline text-xs">Chọn mã</a>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Total -->
-            <div class="mt-4 space-y-1 text-sm">
-                <div class="flex justify-between">
+            <div class="mt-4 space-y-2 text-sm border-t pt-4">
+                <div class="flex justify-between text-gray-600">
                     <span>Tạm tính</span>
-                    <span id="subtotal">{{ cart.get_total_price|floatformat:0 }}đ</span>
+                    <span>{{ cart.get_total_price|floatformat:0 }}đ</span>
                 </div>
-                <div class="flex justify-between font-bold text-gray-800 text-lg">
+                
+                {% if cart.get_discount > 0 %}
+                <div class="flex justify-between text-green-600 font-semibold">
+                    <span>Giảm giá (Voucher)</span>
+                    <span>-{{ cart.get_discount|floatformat:0 }}đ</span>
+                </div>
+                {% endif %}
+                
+                <div class="flex justify-between text-gray-600">
+                    <span>Phí giao hàng</span>
+                    <span class="text-xs italic text-gray-500">(Tính khi giao)</span>
+                </div>
+
+                <div class="flex justify-between font-bold text-gray-800 text-lg border-t pt-2 mt-2">
                     <span>Tổng cộng</span>
-                    <span id="totalAmount">{{ cart.get_total_price|floatformat:0 }}đ</span>
+                    <!-- Sử dụng get_final_total để hiển thị số tiền đã trừ voucher -->
+                    <span class="text-red-600">{{ cart.get_final_total|floatformat:0 }}đ</span>
                 </div>
             </div>
 
