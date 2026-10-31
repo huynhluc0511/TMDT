@@ -1,5 +1,5 @@
 {% extends 'eshop/base.html' %}
-{% block title %}Thanh Toán {{ method_label }} - ZenMart{% endblock %}
+{% block title %}Thanh Toán {{ method_label }} - TenMart{% endblock %}
 {% block content %}
 <div class="container">
     <div style="max-width:520px;margin:2rem auto;">
@@ -78,7 +78,7 @@
                         <span style="color:#636e72;">Số tiền:</span>
                         <span style="color:#a50064;font-weight:800;font-size:1.05rem;">{{ order.total_amount|floatformat:0 }}đ</span>
                         <span style="color:#636e72;">Đến:</span>
-                        <span style="color:#2d3436;font-weight:600;">ZenMart - Cửa Hàng Tiện Lợi</span>
+                        <span style="color:#2d3436;font-weight:600;">TenMart - Cửa Hàng Tiện Lợi</span>
                         <span style="color:#636e72;">Mã ĐH:</span>
                         <span style="color:#2d3436;font-weight:700;font-family:monospace;">{{ order.order_id }}</span>
                     </div>

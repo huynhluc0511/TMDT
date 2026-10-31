@@ -1429,7 +1429,7 @@ class OrderReview(models.Model):
 # 31. Cài đặt trang Liên hệ
 class ContactSettings(models.Model):
     site_name = models.CharField(
-        max_length=200, default="ZenMart", verbose_name="Tên website"
+        max_length=200, default="TenMart", verbose_name="Tên website"
     )
     intro_text = models.TextField(
         blank=True,

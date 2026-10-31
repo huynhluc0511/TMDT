@@ -1,5 +1,5 @@
 {% extends 'eshop/base.html' %}
-{% block title %}Chi tiết đơn hàng {{ order.order_id }} - ZenMart{% endblock %}
+{% block title %}Chi tiết đơn hàng {{ order.order_id }} - TenMart{% endblock %}
 {% block content %}
 <style>
 .order-detail-wrap{max-width:1000px;margin:0 auto;padding:2rem 1rem}
@@ -55,22 +55,32 @@
                 <span class="value">{{ order.created_at|date:"d/m/Y H:i" }}</span>
             </div>
             
+            <!-- Sửa phần Phương thức thanh toán -->
             <div class="order-info-row">
                 <span class="label">Phương thức thanh toán</span>
-                <span class="value">{{ order.get_payment_method_display }}</span>
+                <span class="value">
+                    {% with payment=order.payments.first %}
+                        {% if payment %}{{ payment.payment_method.name }}{% else %}Chưa xác định{% endif %}
+                    {% endwith %}
+                </span>
             </div>
             
+            <!-- Sửa phần Trạng thái thanh toán -->
             <div class="order-info-row">
                 <span class="label">Trạng thái thanh toán</span>
                 <span class="value">
                     {% with payment=order.payments.first %}
-                    {% if payment.status == 'completed' %}
-                    <span style="color:#2dce89;font-weight:700;"><i class="fas fa-check-circle"></i> Đã thanh toán</span>
-                    {% elif payment.status == 'pending' %}
-                    <span style="color:#fb6340;font-weight:700;"><i class="fas fa-clock"></i> Chờ thanh toán</span>
-                    {% else %}
-                    <span style="color:#636e72;">{{ payment.get_status_display }}</span>
-                    {% endif %}
+                        {% if payment %}
+                            {% if payment.status == 'completed' %}
+                            <span style="color:#2dce89;font-weight:700;"><i class="fas fa-check-circle"></i> Đã thanh toán</span>
+                            {% elif payment.status == 'pending' %}
+                            <span style="color:#fb6340;font-weight:700;"><i class="fas fa-clock"></i> Chờ thanh toán</span>
+                            {% else %}
+                            <span style="color:#636e72;">{{ payment.get_status_display }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color:#636e72;">Chưa có giao dịch</span>
+                        {% endif %}
                     {% endwith %}
                 </span>
             </div>
@@ -80,8 +90,8 @@
                 <span class="value">{{ order.note|default:"Không có" }}</span>
             </div>
             
-            <!-- Cancel Button -->
-            {% if order.status in 'pending,confirmed' %}
+            <!-- Sửa điều kiện hiển thị nút Hủy -->
+            {% if order.status == 'pending' or order.status == 'confirmed' %}
             <form method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')">
                 {% csrf_token %}
                 <button type="submit" class="cancel-btn">
@@ -113,7 +123,8 @@
             <div class="order-info-row">
                 <span class="label">Tổng tiền</span>
                 <span class="value" style="font-size:1.3rem;font-weight:800;color:#667eea;">
-                    {{ order.get_total|floatformat:0 }}đ
+                    <!-- Sửa get_total thành total_amount -->
+                    {{ order.total_amount|floatformat:0 }}đ
                 </span>
             </div>
         </div>
@@ -125,7 +136,7 @@
         
         {% for item in order.items.all %}
         <div class="order-item">
-            {% if item.product.image %}
+            {% if item.product.image and item.product.image.name %}
             <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
             {% else %}
             <div style="width:80px;height:80px;background:linear-gradient(135deg,#f6d365,#fda085);border-radius:12px;display:flex;align-items:center;justify-content:center;">
@@ -135,38 +146,51 @@
             
             <div class="details">
                 <div class="name">{{ item.product.name }}</div>
-                <div class="price">{{ item.price|floatformat:0 }}đ</div>
+                <!-- Sửa price thành unit_price -->
+                <div class="price">{{ item.unit_price|floatformat:0 }}đ</div>
                 <div class="quantity">Số lượng: {{ item.quantity }}</div>
             </div>
             
             <div style="text-align:right;">
                 <div style="font-size:1.1rem;font-weight:800;color:#667eea;">
-                    {{ item.get_total|floatformat:0 }}đ
+                    <!-- Sửa get_total thành total_price -->
+                    {{ item.total_price|floatformat:0 }}đ
                 </div>
             </div>
         </div>
         {% endfor %}
         
         <div class="order-summary">
+            <!-- Tính Tạm tính: Tổng tiền + Giảm giá - Phí ship -->
             <div class="row">
                 <span>Tạm tính</span>
-                <span>{{ order.get_subtotal|floatformat:0 }}đ</span>
+                <span>
+                    {% if order.shipping_fee %}
+                        {{ order.total_amount|add:order.discount|add:"-0"|floatformat:0 }}đ
+                    {% else %}
+                        {{ order.total_amount|add:order.discount|floatformat:0 }}đ
+                    {% endif %}
+                </span>
             </div>
+            
             {% if order.shipping_fee > 0 %}
             <div class="row">
                 <span>Phí vận chuyển</span>
                 <span>{{ order.shipping_fee|floatformat:0 }}đ</span>
             </div>
             {% endif %}
+            
             {% if order.discount > 0 %}
             <div class="row" style="color:#f44336;">
-                <span>Giảm giá</span>
+                <span>Giảm giá (Voucher)</span>
                 <span>-{{ order.discount|floatformat:0 }}đ</span>
             </div>
             {% endif %}
+            
             <div class="row total">
                 <span>Tổng cộng</span>
-                <span class="value">{{ order.get_total|floatformat:0 }}đ</span>
+                <!-- Sửa get_total thành total_amount -->
+                <span class="value">{{ order.total_amount|floatformat:0 }}đ</span>
             </div>
         </div>
     </div>

@@ -401,7 +401,7 @@ def _geocode_address(address):
 
     try:
         url = f"https://nominatim.openstreetmap.org/search?format=json&q={urllib.parse.quote(address)}&countrycodes=vn&limit=1"
-        req = urllib.request.Request(url, headers={"User-Agent": "ZenMart/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "TenMart/1.0"})
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read().decode())
         if data and data[0]:
@@ -769,11 +769,11 @@ def forgot_password_view(request):
                 user.set_password(new_password)
                 user.save()
 
-                subject = "Mật khẩu mới ZenMart"
+                subject = "Mật khẩu mới TenMart"
                 message = f"""
 Xin chào {user.get_full_name() or user.email},
 
-Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản ZenMart.
+Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản TenMart.
 
 Mật khẩu mới của bạn là:
 
@@ -782,7 +782,7 @@ Mật khẩu mới của bạn là:
 Vui lòng đăng nhập lại và đổi mật khẩu sau khi vào hệ thống.
 
 Trân trọng,
-ZenMart
+TenMart
 """
 
                 send_mail(
@@ -1207,15 +1207,32 @@ def remove_from_wishlist(request, product_id):
 # ==================== ORDER DETAIL ====================
 
 
+from django.http import Http404
+from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from dashboard.models import Order
+
+
 @login_required
 def order_detail(request, order_id):
-    order = get_object_or_404(Order, order_id=order_id, user=request.user)
+    # 1. Thử tìm theo mã đơn hàng (VD: ORD-12345)
+    order = Order.objects.filter(order_id=order_id, user=request.user).first()
 
-    # Handle order cancellation
+    # 2. Nếu không thấy, và tham số truyền vào là số (VD: 3), thử tìm theo ID
+    if not order and str(order_id).isdigit():
+        order = Order.objects.filter(pk=int(order_id), user=request.user).first()
+
+    # 3. Nếu vẫn không thấy thì báo lỗi 404
+    if not order:
+        raise Http404("Không tìm thấy đơn hàng này.")
+
+    # Xử lý khi khách bấm nút Hủy đơn
     if request.method == "POST" and order.status in ["pending", "confirmed"]:
         order.status = "cancelled"
         order.save()
         messages.success(request, f"Đơn hàng {order.order_id} đã được hủy thành công!")
+        # Chuyển hướng dùng order.order_id (chuỗi) thay vì ID
         return redirect("eshop:order_detail", order_id=order.order_id)
 
     return render(
