@@ -83,6 +83,7 @@
                             <input type="radio" name="voucher_radio" value="{{ v.id }}" 
                                 class="w-4 h-4 text-orange-600 border-gray-300"
                                 {% if current_voucher_id == v.id %}checked{% endif %}
+                                autocomplete="off"
                                 onchange="handleVoucherSelect(this)">
                             <div>
                                 <span class="font-bold text-orange-600">{{ v.code }}</span> - {{ v.description }}
@@ -183,50 +184,49 @@
     const csrftoken = getCookie('csrftoken');
 
     function handleVoucherSelect(radioBtn) {
-        const voucherId = radioBtn.value;
-        
-        fetch("{% url 'eshop:apply_voucher' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': csrftoken
-            },
-            body: new URLSearchParams({ 'voucher_id': voucherId })
-        })
-        .then(response => {
-            if (!response.ok) throw new Error("Lỗi Server: " + response.status);
-            return response.json();
-        })
-        .then(data => {
-            if (data.status === 'success') {
-                window.location.reload(); // Load lại trang để cập nhật tiền và nút Hủy
-            } else {
-                alert(data.message);
-                radioBtn.checked = false; // Bỏ tích nếu lỗi
-            }
-        })
-        .catch(error => {
-            console.error('Lỗi:', error);
-            alert("Có lỗi xảy ra, vui lòng thử lại!");
-        });
-    }
+    const voucherId = radioBtn.value;
+    
+    fetch("{% url 'eshop:apply_voucher' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrftoken
+        },
+        body: new URLSearchParams({ 'voucher_id': voucherId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.location.reload();
+        } else {
+            alert(data.message); // Hiển thị lỗi (ví dụ: "Lỗi hệ thống: ...")
+            radioBtn.checked = false; // Bỏ tích nếu có lỗi
+        }
+    })
+    .catch(error => {
+        console.error('Lỗi:', error);
+        alert("Có lỗi xảy ra khi kết nối đến máy chủ!");
+        radioBtn.checked = false; // Bỏ tích nếu mất kết nối
+    });
+}
 
-    function handleRemoveVoucher() {
-        fetch("{% url 'eshop:apply_voucher' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': csrftoken
-            },
-            body: new URLSearchParams({ 'remove': 'true' })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                window.location.reload(); // Load lại trang để xóa mã
-            }
-        });
-    }
+function handleRemoveVoucher() {
+    fetch("{% url 'eshop:apply_voucher' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrftoken
+        },
+        body: new URLSearchParams({ 'remove': 'true' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.location.reload();
+        }
+    })
+    .catch(error => console.error('Lỗi:', error));
+}
 </script>
 
 {% endblock %}

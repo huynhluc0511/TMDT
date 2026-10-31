@@ -4258,26 +4258,36 @@ def voucher_list(request):
 
 # 2. View xử lý khi khách bấm "Áp dụng" mã giảm giá
 def apply_voucher(request):
+
     if request.method == "POST":
-        code = request.POST.get("code", "").strip().upper()
-        cart_total = Decimal(
-            request.POST.get("cart_total", 0)
-        )  # Truyền tổng tiền giỏ hàng từ template sang
+        cart = Cart(request)  # 🔥 BẮT BUỘC PHẢI CÓ DÒNG NÀY ĐỂ KHỞI TẠO GIỎ HÀNG
+
+        # Xử lý khi bấm Hủy
+        if request.POST.get("remove") == "true":
+            cart.remove_voucher()
+            return JsonResponse(
+                {
+                    "status": "success",
+                    "message": "Đã hủy mã giảm giá",
+                    "new_total": cart.get_total_price(),
+                }
+            )
+
+        # Xử lý khi chọn Voucher
+        voucher_id = request.POST.get("voucher_id")
+        if not voucher_id:
+            return JsonResponse({"status": "error", "message": "Vui lòng chọn mã."})
+
+        cart_total = Decimal(str(cart.get_total_price()))
 
         try:
-            voucher = Voucher.objects.get(code=code)
-            now = timezone.now()
+            voucher = Voucher.objects.get(id=voucher_id)
 
-            # Kiểm tra điều kiện
-            if not voucher.is_active:
-                return JsonResponse(
-                    {"status": "error", "message": "Mã giảm giá đã bị khóa."}
-                )
-            if voucher.valid_to < now or voucher.valid_from > now:
+            if not voucher.is_active or voucher.valid_to < timezone.now():
                 return JsonResponse(
                     {
                         "status": "error",
-                        "message": "Mã giảm giá đã hết hạn hoặc chưa tới ngày sử dụng.",
+                        "message": "Mã giảm giá không hợp lệ hoặc đã hết hạn.",
                     }
                 )
             if voucher.used_count >= voucher.usage_limit:
@@ -4288,31 +4298,33 @@ def apply_voucher(request):
                 return JsonResponse(
                     {
                         "status": "error",
-                        "message": f"Đơn hàng chưa đạt mức tối thiểu {voucher.min_order_value:,.0f}đ.",
+                        "message": f"Đơn hàng phải từ {voucher.min_order_value:,.0f}đ.",
                     }
                 )
 
-            # Tính tiền giảm
-            discount = 0
+            discount = Decimal("0.00")
             if voucher.discount_type == "percentage":
-                discount = cart_total * (Decimal(voucher.discount_value) / 100)
+                discount = cart_total * (
+                    Decimal(voucher.discount_value) / Decimal("100")
+                )
                 if (
                     voucher.max_discount_amount
                     and discount > voucher.max_discount_amount
                 ):
                     discount = voucher.max_discount_amount
-            else:  # Loại 'fixed'
+            else:  # fixed
                 discount = voucher.discount_value
+                if discount > cart_total:
+                    discount = cart_total
 
-            # (Tùy chọn) Lưu voucher vào session để dùng ở bước thanh toán
-            request.session["voucher_id"] = voucher.id
-            request.session["voucher_discount"] = float(discount)
+            cart.set_voucher(voucher.id, discount)
 
             return JsonResponse(
                 {
                     "status": "success",
                     "message": "Áp dụng thành công!",
                     "discount": float(discount),
+                    "new_total": float(cart_total - discount),
                 }
             )
 
@@ -4320,5 +4332,10 @@ def apply_voucher(request):
             return JsonResponse(
                 {"status": "error", "message": "Mã giảm giá không tồn tại."}
             )
+        except Exception as e:
+            # Bắt mọi lỗi hệ thống (ví dụ lỗi kiểu dữ liệu của Voucher 20k)
+            return JsonResponse(
+                {"status": "error", "message": f"Lỗi hệ thống: {str(e)}"}
+            )
 
-    return JsonResponse({"status": "error", "message": "Invalid request"})
+    return JsonResponse({"status": "error", "message": "Yêu cầu không hợp lệ"})
