@@ -6,13 +6,16 @@ from django.contrib.auth import get_user_model
 
 # ========== CORE MODELS ==========
 
+
 # 1. Cửa Hàng
 class Store(models.Model):
     name = models.CharField(max_length=100, verbose_name="Tên cửa hàng")
     address = models.CharField(max_length=255, verbose_name="Địa chỉ")
     latitude = models.FloatField(verbose_name="Vĩ độ")
     longitude = models.FloatField(verbose_name="Kinh độ")
-    opening_hours = models.CharField(max_length=255, default="9:00 - 22:00", blank=True, verbose_name="Giờ mở cửa")
+    opening_hours = models.CharField(
+        max_length=255, default="9:00 - 22:00", blank=True, verbose_name="Giờ mở cửa"
+    )
     warehouse_info = models.TextField(blank=True, verbose_name="Thông tin kho")
     is_active = models.BooleanField(default=True, verbose_name="Hoạt động")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
@@ -26,6 +29,7 @@ class Store(models.Model):
 
 
 # ========== HR MODELS ==========
+
 
 # 2. Phòng Ban
 class Department(models.Model):
@@ -43,9 +47,28 @@ class Department(models.Model):
 
 # 3. Nhân Viên
 class Employee(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='employee', null=True, blank=True)
-    store = models.ForeignKey(Store, on_delete=models.SET_NULL, null=True, related_name='employees', verbose_name="Cửa hàng")
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='employees', verbose_name="Phòng ban")
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="employee",
+        null=True,
+        blank=True,
+    )
+    store = models.ForeignKey(
+        Store,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="employees",
+        verbose_name="Cửa hàng",
+    )
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="employees",
+        verbose_name="Phòng ban",
+    )
     first_name = models.CharField(max_length=100, verbose_name="Tên")
     last_name = models.CharField(max_length=100, verbose_name="Họ")
     email = models.EmailField(unique=True, verbose_name="Email")
@@ -66,12 +89,15 @@ class Employee(models.Model):
 
 # ========== CATALOG MODELS ==========
 
+
 # 4. Danh Mục Sản Phẩm
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name="Tên danh mục")
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True, verbose_name="Mô tả")
-    image = models.ImageField(upload_to='categories/', null=True, blank=True, verbose_name="Hình ảnh")
+    image = models.ImageField(
+        upload_to="categories/", null=True, blank=True, verbose_name="Hình ảnh"
+    )
     is_active = models.BooleanField(default=True, verbose_name="Hoạt động")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
 
@@ -98,16 +124,32 @@ class Brand(models.Model):
 
 # 6. Sản Phẩm / Hàng Hóa / Vật Phẩm
 class Product(models.Model):
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', verbose_name="Danh mục")
-    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, related_name='products', verbose_name="Nhãn hiệu")
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name="products",
+        verbose_name="Danh mục",
+    )
+    brand = models.ForeignKey(
+        Brand,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="products",
+        verbose_name="Nhãn hiệu",
+    )
     name = models.CharField(max_length=200, verbose_name="Tên sản phẩm")
     description = models.TextField(blank=True, verbose_name="Mô tả")
-    barcode = models.CharField(max_length=100, unique=True, null=True, blank=True, verbose_name="Mã vạch")
+    barcode = models.CharField(
+        max_length=100, unique=True, null=True, blank=True, verbose_name="Mã vạch"
+    )
     cost_price = models.FloatField(verbose_name="Giá vốn")
     sale_price = models.FloatField(verbose_name="Giá bán")
     stock = models.PositiveIntegerField(default=0, verbose_name="Tồn kho hiện tại")
     min_stock = models.IntegerField(default=10, verbose_name="Tồn kho tối thiểu")
-    image = models.ImageField(upload_to='products/', null=True, blank=True, verbose_name="Hình ảnh")
+    image = models.ImageField(
+        upload_to="products/", null=True, blank=True, verbose_name="Hình ảnh"
+    )
     is_active = models.BooleanField(default=True, verbose_name="Hoạt động")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
@@ -125,13 +167,20 @@ class Product(models.Model):
 
     class Meta:
         verbose_name_plural = "Sản Phẩm"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
+
 
 # ========== INVENTORY MODELS ==========
 
+
 # 7. Kho
 class Warehouse(models.Model):
-    store = models.OneToOneField(Store, on_delete=models.CASCADE, related_name='warehouse', verbose_name="Cửa hàng")
+    store = models.OneToOneField(
+        Store,
+        on_delete=models.CASCADE,
+        related_name="warehouse",
+        verbose_name="Cửa hàng",
+    )
     info = models.TextField(blank=True, verbose_name="Thông tin kho")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
@@ -145,11 +194,23 @@ class Warehouse(models.Model):
 
 # 8. Tồn Kho
 class StockBalance(models.Model):
-    warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='stock_balances', verbose_name="Kho")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stock_balances', verbose_name="Sản phẩm")
+    warehouse = models.ForeignKey(
+        Warehouse,
+        on_delete=models.CASCADE,
+        related_name="stock_balances",
+        verbose_name="Kho",
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="stock_balances",
+        verbose_name="Sản phẩm",
+    )
     quantity_on_hand = models.IntegerField(default=0, verbose_name="Tồn kho hiện tại")
     quantity_reserved = models.IntegerField(default=0, verbose_name="Tồn kho dự trữ")
-    last_counted_at = models.DateTimeField(null=True, blank=True, verbose_name="Lần kiểm kho cuối")
+    last_counted_at = models.DateTimeField(
+        null=True, blank=True, verbose_name="Lần kiểm kho cuối"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
 
@@ -158,25 +219,45 @@ class StockBalance(models.Model):
 
     class Meta:
         verbose_name_plural = "Tồn Kho"
-        unique_together = ('warehouse', 'product')
+        unique_together = ("warehouse", "product")
 
 
 # 9. Chuyển Động Kho
 class StockMovement(models.Model):
     MOVEMENT_TYPES = (
-        ('import', 'Nhập hàng'),
-        ('export', 'Xuất hàng'),
-        ('adjust', 'Điều chỉnh'),
-        ('return', 'Trả hàng'),
+        ("import", "Nhập hàng"),
+        ("export", "Xuất hàng"),
+        ("adjust", "Điều chỉnh"),
+        ("return", "Trả hàng"),
     )
 
-    warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='stock_movements', verbose_name="Kho")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stock_movements', verbose_name="Sản phẩm")
-    movement_type = models.CharField(max_length=20, choices=MOVEMENT_TYPES, verbose_name="Loại chuyển động")
+    warehouse = models.ForeignKey(
+        Warehouse,
+        on_delete=models.CASCADE,
+        related_name="stock_movements",
+        verbose_name="Kho",
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="stock_movements",
+        verbose_name="Sản phẩm",
+    )
+    movement_type = models.CharField(
+        max_length=20, choices=MOVEMENT_TYPES, verbose_name="Loại chuyển động"
+    )
     quantity = models.IntegerField(verbose_name="Số lượng")
-    reference_id = models.CharField(max_length=100, blank=True, verbose_name="Tham chiếu")
+    reference_id = models.CharField(
+        max_length=100, blank=True, verbose_name="Tham chiếu"
+    )
     note = models.TextField(blank=True, verbose_name="Ghi chú")
-    created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Người tạo")
+    created_by = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Người tạo",
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
 
     def __str__(self):
@@ -184,15 +265,18 @@ class StockMovement(models.Model):
 
     class Meta:
         verbose_name_plural = "Chuyển Động Kho"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
 
 # ========== PURCHASING MODELS ==========
 
+
 # 10. Nhà Cung Ứng
 class Supplier(models.Model):
     name = models.CharField(max_length=200, verbose_name="Tên nhà cung ứng")
-    contact_person = models.CharField(max_length=100, blank=True, verbose_name="Người liên hệ")
+    contact_person = models.CharField(
+        max_length=100, blank=True, verbose_name="Người liên hệ"
+    )
     email = models.EmailField(blank=True, verbose_name="Email")
     phone = models.CharField(max_length=20, blank=True, verbose_name="Số điện thoại")
     address = models.TextField(blank=True, verbose_name="Địa chỉ")
@@ -211,23 +295,54 @@ class Supplier(models.Model):
 # 11. Đơn Mua Hàng
 class PurchaseOrder(models.Model):
     STATUS_CHOICES = (
-        ('draft', 'Nháp'),
-        ('pending', 'Chờ duyệt'),
-        ('approved', 'Đã duyệt'),
-        ('received', 'Đã nhận'),
-        ('cancelled', 'Hủy'),
+        ("draft", "Nháp"),
+        ("pending", "Chờ duyệt"),
+        ("approved", "Đã duyệt"),
+        ("received", "Đã nhận"),
+        ("cancelled", "Hủy"),
     )
 
-    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, related_name='purchase_orders', verbose_name="Nhà cung ứng")
-    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='purchase_orders', verbose_name="Cửa hàng")
+    supplier = models.ForeignKey(
+        Supplier,
+        on_delete=models.PROTECT,
+        related_name="purchase_orders",
+        verbose_name="Nhà cung ứng",
+    )
+    store = models.ForeignKey(
+        Store,
+        on_delete=models.CASCADE,
+        related_name="purchase_orders",
+        verbose_name="Cửa hàng",
+    )
     po_number = models.CharField(max_length=50, unique=True, verbose_name="Số PO")
     order_date = models.DateTimeField(auto_now_add=True, verbose_name="Ngày đặt")
-    expected_delivery_date = models.DateField(null=True, blank=True, verbose_name="Ngày giao dự kiến")
+    expected_delivery_date = models.DateField(
+        null=True, blank=True, verbose_name="Ngày giao dự kiến"
+    )
     total_amount = models.FloatField(default=0, verbose_name="Tổng tiền")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name="Trạng thái")
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="draft",
+        verbose_name="Trạng thái",
+    )
     note = models.TextField(blank=True, verbose_name="Ghi chú")
-    approved_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_orders', verbose_name="Người duyệt")
-    created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_orders', verbose_name="Người tạo")
+    approved_by = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_orders",
+        verbose_name="Người duyệt",
+    )
+    created_by = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_orders",
+        verbose_name="Người tạo",
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
 
@@ -236,13 +351,20 @@ class PurchaseOrder(models.Model):
 
     class Meta:
         verbose_name_plural = "Đơn Mua Hàng"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
 
 # 12. Chi Tiết Đơn Mua Hàng
 class PurchaseOrderItem(models.Model):
-    purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='items', verbose_name="Đơn mua")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Sản phẩm")
+    purchase_order = models.ForeignKey(
+        PurchaseOrder,
+        on_delete=models.CASCADE,
+        related_name="items",
+        verbose_name="Đơn mua",
+    )
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, verbose_name="Sản phẩm"
+    )
     quantity_ordered = models.IntegerField(verbose_name="Số lượng đặt")
     unit_price = models.FloatField(verbose_name="Đơn giá")
     total_price = models.FloatField(verbose_name="Thành tiền")
@@ -252,26 +374,56 @@ class PurchaseOrderItem(models.Model):
 
     class Meta:
         verbose_name_plural = "Chi Tiết Đơn Mua"
-        unique_together = ('purchase_order', 'product')
+        unique_together = ("purchase_order", "product")
 
 
 # 13. Phiếu Nhập Hàng
 class GoodsReceipt(models.Model):
     STATUS_CHOICES = (
-        ('draft', 'Nháp'),
-        ('confirmed', 'Đã xác nhận'),
-        ('cancelled', 'Đã hủy'),
+        ("draft", "Nháp"),
+        ("confirmed", "Đã xác nhận"),
+        ("cancelled", "Đã hủy"),
     )
 
-    purchase_order = models.OneToOneField(PurchaseOrder, on_delete=models.CASCADE, related_name='goods_receipt', null=True, blank=True, verbose_name="Đơn mua")
-    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, related_name='goods_receipts', verbose_name="Nhà cung ứng")
-    warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='goods_receipts', verbose_name="Kho")
-    receipt_number = models.CharField(max_length=50, unique=True, verbose_name="Số phiếu nhập")
+    purchase_order = models.OneToOneField(
+        PurchaseOrder,
+        on_delete=models.CASCADE,
+        related_name="goods_receipt",
+        null=True,
+        blank=True,
+        verbose_name="Đơn mua",
+    )
+    supplier = models.ForeignKey(
+        Supplier,
+        on_delete=models.PROTECT,
+        related_name="goods_receipts",
+        verbose_name="Nhà cung ứng",
+    )
+    warehouse = models.ForeignKey(
+        Warehouse,
+        on_delete=models.CASCADE,
+        related_name="goods_receipts",
+        verbose_name="Kho",
+    )
+    receipt_number = models.CharField(
+        max_length=50, unique=True, verbose_name="Số phiếu nhập"
+    )
     receipt_date = models.DateTimeField(auto_now_add=True, verbose_name="Ngày nhập")
     total_amount = models.FloatField(default=0, verbose_name="Tổng tiền")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name="Trạng thái")
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="draft",
+        verbose_name="Trạng thái",
+    )
     note = models.TextField(blank=True, verbose_name="Ghi chú")
-    created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Người tạo")
+    created_by = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Người tạo",
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
 
@@ -280,13 +432,20 @@ class GoodsReceipt(models.Model):
 
     class Meta:
         verbose_name_plural = "Phiếu Nhập Hàng"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
 
 # 14. Chi Tiết Phiếu Nhập Hàng
 class GoodsReceiptItem(models.Model):
-    goods_receipt = models.ForeignKey(GoodsReceipt, on_delete=models.CASCADE, related_name='items', verbose_name="Phiếu nhập")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Sản phẩm")
+    goods_receipt = models.ForeignKey(
+        GoodsReceipt,
+        on_delete=models.CASCADE,
+        related_name="items",
+        verbose_name="Phiếu nhập",
+    )
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, verbose_name="Sản phẩm"
+    )
     quantity = models.IntegerField(verbose_name="Số lượng")
     unit_cost = models.FloatField(verbose_name="Đơn giá")
     total_cost = models.FloatField(verbose_name="Thành tiền")
@@ -299,6 +458,7 @@ class GoodsReceiptItem(models.Model):
 
 
 # ========== CRM MODELS ==========
+
 
 # 15. Nhóm Khách Hàng
 class CustomerGroup(models.Model):
@@ -316,7 +476,14 @@ class CustomerGroup(models.Model):
 
 # 16. Khách Hàng
 class Customer(models.Model):
-    group = models.ForeignKey(CustomerGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name='customers', verbose_name="Nhóm khách hàng")
+    group = models.ForeignKey(
+        CustomerGroup,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="customers",
+        verbose_name="Nhóm khách hàng",
+    )
     first_name = models.CharField(max_length=100, verbose_name="Tên")
     last_name = models.CharField(max_length=100, verbose_name="Họ")
     phone = models.CharField(max_length=20, unique=True, verbose_name="Số điện thoại")
@@ -332,10 +499,11 @@ class Customer(models.Model):
 
     class Meta:
         verbose_name_plural = "Khách Hàng"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
 
 # ========== SALES MODELS ==========
+
 
 # 17. Phương Thức Thanh Toán
 class PaymentMethod(models.Model):
@@ -354,38 +522,71 @@ class PaymentMethod(models.Model):
 # 21. Mã Giảm Giá
 class DiscountCode(models.Model):
     DISCOUNT_TYPE_CHOICES = (
-        ('percentage', 'Phần trăm'),
-        ('fixed', 'Cố định'),
+        ("percentage", "Phần trăm"),
+        ("fixed", "Cố định"),
     )
-    
+
     STATUS_CHOICES = (
-        ('active', 'Hoạt động'),
-        ('inactive', 'Không hoạt động'),
-        ('expired', 'Hết hạn'),
+        ("active", "Hoạt động"),
+        ("inactive", "Không hoạt động"),
+        ("expired", "Hết hạn"),
     )
 
     code = models.CharField(max_length=50, unique=True, verbose_name="Mã giảm giá")
     name = models.CharField(max_length=200, verbose_name="Tên mã giảm giá")
     description = models.TextField(blank=True, verbose_name="Mô tả")
-    
-    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPE_CHOICES, default='percentage', verbose_name="Loại giảm giá")
-    discount_value = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Giá trị giảm")
-    
-    minimum_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Giá trị đơn hàng tối thiểu")
-    maximum_discount_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Giảm giá tối đa")
-    
-    usage_limit = models.IntegerField(null=True, blank=True, verbose_name="Giới hạn số lần sử dụng")
+
+    discount_type = models.CharField(
+        max_length=20,
+        choices=DISCOUNT_TYPE_CHOICES,
+        default="percentage",
+        verbose_name="Loại giảm giá",
+    )
+    discount_value = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name="Giá trị giảm"
+    )
+
+    minimum_order_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        verbose_name="Giá trị đơn hàng tối thiểu",
+    )
+    maximum_discount_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Giảm giá tối đa",
+    )
+
+    usage_limit = models.IntegerField(
+        null=True, blank=True, verbose_name="Giới hạn số lần sử dụng"
+    )
     usage_count = models.IntegerField(default=0, verbose_name="Số lần đã sử dụng")
-    
-    user_limit = models.IntegerField(default=1, verbose_name="Giới hạn sử dụng mỗi user")
-    
+
+    user_limit = models.IntegerField(
+        default=1, verbose_name="Giới hạn sử dụng mỗi user"
+    )
+
     start_date = models.DateTimeField(verbose_name="Ngày bắt đầu")
     end_date = models.DateTimeField(verbose_name="Ngày kết thúc")
-    
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', verbose_name="Trạng thái")
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="active",
+        verbose_name="Trạng thái",
+    )
     is_active = models.BooleanField(default=True, verbose_name="Kích hoạt")
-    
-    created_by = models.ForeignKey('Employee', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Người tạo")
+
+    created_by = models.ForeignKey(
+        "Employee",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Người tạo",
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
 
@@ -395,33 +596,33 @@ class DiscountCode(models.Model):
     class Meta:
         verbose_name = "Mã Giảm Giá"
         verbose_name_plural = "Mã Giảm Giá"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def is_valid(self):
         """Kiểm tra mã giảm giá có hợp lệ không"""
         from django.utils import timezone
-        
-        if not self.is_active or self.status != 'active':
+
+        if not self.is_active or self.status != "active":
             return False, "Mã giảm giá không hoạt động"
-        
+
         now = timezone.now()
         if now < self.start_date:
             return False, "Mã giảm giá chưa bắt đầu"
-        
+
         if now > self.end_date:
             return False, "Mã giảm giá đã hết hạn"
-        
+
         if self.usage_limit and self.usage_count >= self.usage_limit:
             return False, "Mã giảm giá đã hết lượt sử dụng"
-        
+
         return True, "Mã giảm giá hợp lệ"
 
     def calculate_discount(self, order_amount):
         """Tính toán số tiền giảm giá"""
         if order_amount < self.minimum_order_amount:
             return 0, f"Đơn hàng tối thiểu phải {self.minimum_order_amount:,.0f}đ"
-        
-        if self.discount_type == 'percentage':
+
+        if self.discount_type == "percentage":
             discount = order_amount * (self.discount_value / 100)
             if self.maximum_discount_amount and discount > self.maximum_discount_amount:
                 discount = self.maximum_discount_amount
@@ -429,34 +630,51 @@ class DiscountCode(models.Model):
             discount = self.discount_value
             if discount > order_amount:
                 discount = order_amount
-        
+
         return discount, ""
 
     def can_user_use(self, user):
         """Kiểm tra user có thể sử dụng mã này không"""
         if not user or user.is_anonymous:
             return False, "Cần đăng nhập để sử dụng mã giảm giá"
-        
+
         # Kiểm tra số lần sử dụng của user này
         user_usage = Order.objects.filter(user=user, discount_code=self).count()
-        
+
         if user_usage >= self.user_limit:
             return False, f"Bạn đã sử dụng mã này {user_usage}/{self.user_limit} lần"
-        
+
         return True, ""
 
     def mark_as_used(self):
         """Đánh dấu mã đã được sử dụng"""
         self.usage_count += 1
-        self.save(update_fields=['usage_count'])
+        self.save(update_fields=["usage_count"])
 
 
 # 22. Sử dụng mã giảm giá của user
 class DiscountCodeUsage(models.Model):
-    discount_code = models.ForeignKey(DiscountCode, on_delete=models.CASCADE, related_name='usages', verbose_name="Mã giảm giá")
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='discount_usages', verbose_name="User")
-    order = models.ForeignKey('Order', on_delete=models.CASCADE, related_name='discount_usage', verbose_name="Đơn hàng")
-    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Số tiền giảm")
+    discount_code = models.ForeignKey(
+        DiscountCode,
+        on_delete=models.CASCADE,
+        related_name="usages",
+        verbose_name="Mã giảm giá",
+    )
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name="discount_usages",
+        verbose_name="User",
+    )
+    order = models.ForeignKey(
+        "Order",
+        on_delete=models.CASCADE,
+        related_name="discount_usage",
+        verbose_name="Đơn hàng",
+    )
+    discount_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name="Số tiền giảm"
+    )
     used_at = models.DateTimeField(auto_now_add=True, verbose_name="Thời gian sử dụng")
 
     def __str__(self):
@@ -465,47 +683,109 @@ class DiscountCodeUsage(models.Model):
     class Meta:
         verbose_name = "Lịch Sử Sử Dụng Mã Giảm Giá"
         verbose_name_plural = "Lịch Sử Sử Dụng Mã Giảm Giá"
-        ordering = ['-used_at']
-        unique_together = ['discount_code', 'user', 'order']
+        ordering = ["-used_at"]
+        unique_together = ["discount_code", "user", "order"]
 
 
 # 18. Đơn Hàng Bán
 class Order(models.Model):
     STATUS_CHOICES = (
-        ('pending', 'Chờ xử lý'),
-        ('confirmed', 'Đã xác nhận'),
-        ('processing', 'Đang xử lý'),
-        ('shipped', 'Đã giao hàng'),
-        ('completed', 'Hoàn thành'),
-        ('cancelled', 'Hủy'),
+        ("pending", "Chờ xử lý"),
+        ("confirmed", "Đã xác nhận"),
+        ("processing", "Đang xử lý"),
+        ("shipped", "Đã giao hàng"),
+        ("completed", "Hoàn thành"),
+        ("cancelled", "Hủy"),
     )
 
     # Merged from orders app: online checkout fields
-    order_id = models.CharField(max_length=50, unique=True, editable=False, blank=True, verbose_name="Mã đơn hàng online")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders', null=True, blank=True, verbose_name="Người đặt (online)")
-    full_name = models.CharField(max_length=200, blank=True, verbose_name="Họ tên người nhận")
+    order_id = models.CharField(
+        max_length=50,
+        unique=True,
+        editable=False,
+        blank=True,
+        verbose_name="Mã đơn hàng online",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="orders",
+        null=True,
+        blank=True,
+        verbose_name="Người đặt (online)",
+    )
+    full_name = models.CharField(
+        max_length=200, blank=True, verbose_name="Họ tên người nhận"
+    )
     shipping_address = models.TextField(blank=True, verbose_name="Địa chỉ giao hàng")
-    phone_number = models.CharField(max_length=20, blank=True, verbose_name="Số điện thoại giao hàng")
+    phone_number = models.CharField(
+        max_length=20, blank=True, verbose_name="Số điện thoại giao hàng"
+    )
     lat = models.FloatField(null=True, blank=True, verbose_name="Vĩ độ người dùng")
     lng = models.FloatField(null=True, blank=True, verbose_name="Kinh độ người dùng")
 
     # Dashboard fields: in-store sales
-    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='orders', null=True, blank=True, verbose_name="Cửa hàng")
-    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, related_name='customer_orders', verbose_name="Khách hàng")
-    order_number = models.CharField(max_length=50, unique=True, blank=True, verbose_name="Số đơn hàng")
+    store = models.ForeignKey(
+        Store,
+        on_delete=models.CASCADE,
+        related_name="orders",
+        null=True,
+        blank=True,
+        verbose_name="Cửa hàng",
+    )
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="customer_orders",
+        verbose_name="Khách hàng",
+    )
+    order_number = models.CharField(
+        max_length=50, unique=True, blank=True, verbose_name="Số đơn hàng"
+    )
     order_date = models.DateTimeField(auto_now_add=True, verbose_name="Ngày đặt")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Trạng thái")
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending",
+        verbose_name="Trạng thái",
+    )
     total_amount = models.FloatField(default=0, verbose_name="Tổng tiền")
     discount = models.FloatField(default=0, verbose_name="Chiết khấu")
     tax_amount = models.FloatField(default=0, verbose_name="Thuế")
     shipping_fee = models.FloatField(default=0, verbose_name="Phí giao hàng")
-    shipping_distance = models.FloatField(null=True, blank=True, verbose_name="Khoảng cách giao hàng (km)")
-    delivery_time_slot = models.CharField(max_length=50, blank=True, verbose_name="Khung giờ giao hàng")
-    nearest_store = models.ForeignKey(Store, on_delete=models.SET_NULL, null=True, blank=True, related_name='delivered_orders', verbose_name="Cửa hàng giao hàng gần nhất")
-    discount_code = models.ForeignKey(DiscountCode, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders', verbose_name="Mã giảm giá")
+    shipping_distance = models.FloatField(
+        null=True, blank=True, verbose_name="Khoảng cách giao hàng (km)"
+    )
+    delivery_time_slot = models.CharField(
+        max_length=50, blank=True, verbose_name="Khung giờ giao hàng"
+    )
+    nearest_store = models.ForeignKey(
+        Store,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="delivered_orders",
+        verbose_name="Cửa hàng giao hàng gần nhất",
+    )
+    discount_code = models.ForeignKey(
+        DiscountCode,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders",
+        verbose_name="Mã giảm giá",
+    )
     discount_amount = models.FloatField(default=0, verbose_name="Số tiền giảm giá")
     note = models.TextField(blank=True, verbose_name="Ghi chú")
-    created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Người tạo")
+    created_by = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Người tạo",
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
 
@@ -517,7 +797,10 @@ class Order(models.Model):
         if not self.order_id and not self.order_number:
             import uuid
             from datetime import datetime as dt
-            generated = f"ORD-{dt.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
+
+            generated = (
+                f"ORD-{dt.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
+            )
             if not self.order_id:
                 self.order_id = generated
             if not self.order_number:
@@ -526,13 +809,20 @@ class Order(models.Model):
 
     class Meta:
         verbose_name_plural = "Đơn Hàng"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
 
 # 19. Chi Tiết Đơn Hàng
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name="Đơn hàng")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_items', verbose_name="Sản phẩm")
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="items", verbose_name="Đơn hàng"
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="order_items",
+        verbose_name="Sản phẩm",
+    )
     quantity = models.IntegerField(verbose_name="Số lượng")
     unit_price = models.FloatField(verbose_name="Đơn giá")
     total_price = models.FloatField(verbose_name="Thành tiền")
@@ -547,23 +837,39 @@ class OrderItem(models.Model):
 
     class Meta:
         verbose_name_plural = "Chi Tiết Đơn Hàng"
-        unique_together = ('order', 'product')
+        unique_together = ("order", "product")
 
 
 # 20. Thanh Toán Đơn Hàng
 class OrderPayment(models.Model):
     PAYMENT_STATUS = (
-        ('pending', 'Chưa thanh toán'),
-        ('partial', 'Thanh toán một phần'),
-        ('completed', 'Đã thanh toán'),
+        ("pending", "Chưa thanh toán"),
+        ("partial", "Thanh toán một phần"),
+        ("completed", "Đã thanh toán"),
     )
 
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='payments', verbose_name="Đơn hàng")
-    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.PROTECT, verbose_name="Phương thức thanh toán")
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="payments",
+        verbose_name="Đơn hàng",
+    )
+    payment_method = models.ForeignKey(
+        PaymentMethod, on_delete=models.PROTECT, verbose_name="Phương thức thanh toán"
+    )
     amount = models.FloatField(verbose_name="Số tiền")
-    status = models.CharField(max_length=20, choices=PAYMENT_STATUS, default='pending', verbose_name="Trạng thái")
-    reference_number = models.CharField(max_length=100, blank=True, verbose_name="Mã tham chiếu")
-    payment_date = models.DateTimeField(auto_now_add=True, verbose_name="Ngày thanh toán")
+    status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS,
+        default="pending",
+        verbose_name="Trạng thái",
+    )
+    reference_number = models.CharField(
+        max_length=100, blank=True, verbose_name="Mã tham chiếu"
+    )
+    payment_date = models.DateTimeField(
+        auto_now_add=True, verbose_name="Ngày thanh toán"
+    )
     note = models.TextField(blank=True, verbose_name="Ghi chú")
 
     def __str__(self):
@@ -571,36 +877,51 @@ class OrderPayment(models.Model):
 
     class Meta:
         verbose_name_plural = "Thanh Toán"
-        ordering = ['-payment_date']
+        ordering = ["-payment_date"]
 
 
 # ========== WAREHOUSE MODELS (Extended) ==========
 
+
 # 21. Phiếu Nhập/Xuất Kho (Batch)
 class WarehouseBatch(models.Model):
     BATCH_TYPES = (
-        ('import', 'Nhập hàng'),
-        ('export', 'Xuất hàng'),
+        ("import", "Nhập hàng"),
+        ("export", "Xuất hàng"),
     )
-    
-    warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='batches', verbose_name="Kho")
-    batch_type = models.CharField(max_length=20, choices=BATCH_TYPES, verbose_name="Loại phiếu")
+
+    warehouse = models.ForeignKey(
+        Warehouse, on_delete=models.CASCADE, related_name="batches", verbose_name="Kho"
+    )
+    batch_type = models.CharField(
+        max_length=20, choices=BATCH_TYPES, verbose_name="Loại phiếu"
+    )
     batch_number = models.CharField(max_length=50, unique=True, verbose_name="Số phiếu")
-    supplier = models.CharField(max_length=255, blank=True, verbose_name="Nhà cung ứng/Người nhận")
+    supplier = models.CharField(
+        max_length=255, blank=True, verbose_name="Nhà cung ứng/Người nhận"
+    )
     description = models.TextField(blank=True, verbose_name="Mô tả")
     total_amount = models.FloatField(default=0, verbose_name="Tổng tiền")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
-    created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Người tạo")
+    created_by = models.ForeignKey(
+        Employee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Người tạo",
+    )
     is_printed = models.BooleanField(default=False, verbose_name="Đã in")
-    printed_at = models.DateTimeField(null=True, blank=True, verbose_name="Thời gian in")
+    printed_at = models.DateTimeField(
+        null=True, blank=True, verbose_name="Thời gian in"
+    )
 
     def __str__(self):
         return f"{self.batch_number} - {self.get_batch_type_display()}"
 
     class Meta:
         verbose_name_plural = "Phiếu Nhập/Xuất Kho"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def calculate_total(self):
         """Tính tổng tiền của phiếu"""
@@ -611,8 +932,15 @@ class WarehouseBatch(models.Model):
 
 # 22. Chi Tiết Phiếu Nhập/Xuất Kho
 class WarehouseBatchItem(models.Model):
-    batch = models.ForeignKey(WarehouseBatch, on_delete=models.CASCADE, related_name='items', verbose_name="Phiếu")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Sản phẩm")
+    batch = models.ForeignKey(
+        WarehouseBatch,
+        on_delete=models.CASCADE,
+        related_name="items",
+        verbose_name="Phiếu",
+    )
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, verbose_name="Sản phẩm"
+    )
     quantity = models.IntegerField(verbose_name="Số lượng")
     unit_price = models.FloatField(verbose_name="Đơn giá")
 
@@ -625,10 +953,15 @@ class WarehouseBatchItem(models.Model):
 
 # ========== WAREHOUSE ITEM (from dashboard1) ==========
 
+
 # 23. Sản phẩm trong kho
 class WarehouseItem(models.Model):
-    warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='items', verbose_name="Kho")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Sản phẩm")
+    warehouse = models.ForeignKey(
+        Warehouse, on_delete=models.CASCADE, related_name="items", verbose_name="Kho"
+    )
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, verbose_name="Sản phẩm"
+    )
     quantity = models.IntegerField(default=0, verbose_name="Số lượng tồn")
     unit = models.CharField(max_length=50, default="cái", verbose_name="Đơn vị")
     min_quantity = models.IntegerField(default=10, verbose_name="Tồn kho tối thiểu")
@@ -640,11 +973,14 @@ class WarehouseItem(models.Model):
 
     def sync_product_stock(self):
         """Cập nhật stock của Product từ tổng số lượng WarehouseItem."""
-        total = WarehouseItem.objects.filter(product=self.product).aggregate(
-            total=Sum('quantity')
-        )['total'] or 0
+        total = (
+            WarehouseItem.objects.filter(product=self.product).aggregate(
+                total=Sum("quantity")
+            )["total"]
+            or 0
+        )
         self.product.stock = total
-        self.product.save(update_fields=['stock', 'updated_at'])
+        self.product.save(update_fields=["stock", "updated_at"])
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -653,11 +989,14 @@ class WarehouseItem(models.Model):
     def delete(self, *args, **kwargs):
         product = self.product
         super().delete(*args, **kwargs)
-        total = WarehouseItem.objects.filter(product=product).aggregate(
-            total=Sum('quantity')
-        )['total'] or 0
+        total = (
+            WarehouseItem.objects.filter(product=product).aggregate(
+                total=Sum("quantity")
+            )["total"]
+            or 0
+        )
         product.stock = total
-        product.save(update_fields=['stock', 'updated_at'])
+        product.save(update_fields=["stock", "updated_at"])
 
     class Meta:
         verbose_name_plural = "Sản Phẩm Kho"
@@ -666,12 +1005,19 @@ class WarehouseItem(models.Model):
 # 24. Giao dịch kho (nhập/xuất)
 class WarehouseTransaction(models.Model):
     TRANSACTION_TYPES = (
-        ('import', 'Nhập hàng'),
-        ('export', 'Xuất hàng'),
+        ("import", "Nhập hàng"),
+        ("export", "Xuất hàng"),
     )
 
-    warehouse_item = models.ForeignKey(WarehouseItem, on_delete=models.CASCADE, related_name='transactions', verbose_name="Sản phẩm kho")
-    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES, verbose_name="Loại giao dịch")
+    warehouse_item = models.ForeignKey(
+        WarehouseItem,
+        on_delete=models.CASCADE,
+        related_name="transactions",
+        verbose_name="Sản phẩm kho",
+    )
+    transaction_type = models.CharField(
+        max_length=20, choices=TRANSACTION_TYPES, verbose_name="Loại giao dịch"
+    )
     quantity = models.IntegerField(verbose_name="Số lượng")
     unit_price = models.FloatField(default=0, verbose_name="Đơn giá")
     supplier = models.CharField(max_length=255, blank=True, verbose_name="Nhà cung ứng")
@@ -683,39 +1029,54 @@ class WarehouseTransaction(models.Model):
 
     class Meta:
         verbose_name_plural = "Giao Dịch Kho"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
 
 # ========== CONTENT MODELS (from dashboard1) ==========
 
+
 # 25. Giới thiệu - Bài viết trang giới thiệu
 class About(models.Model):
     STATUS_CHOICES = (
-        ('draft', 'Bản nháp'),
-        ('published', 'Đã xuất bản'),
-        ('archived', 'Lưu trữ'),
+        ("draft", "Bản nháp"),
+        ("published", "Đã xuất bản"),
+        ("archived", "Lưu trữ"),
     )
 
     title = models.CharField(max_length=200, verbose_name="Tiêu đề bài viết")
     slug = models.SlugField(unique=True, verbose_name="Slug")
     content = models.TextField(verbose_name="Nội dung bài viết")
     excerpt = models.TextField(max_length=300, blank=True, verbose_name="Tóm tắt")
-    featured_image = models.ImageField(upload_to='about/', null=True, blank=True, verbose_name="Hình ảnh nổi bật")
-    external_link = models.URLField(blank=True, verbose_name="Liên kết bài viết bên ngoài")
+    featured_image = models.ImageField(
+        upload_to="about/", null=True, blank=True, verbose_name="Hình ảnh nổi bật"
+    )
+    external_link = models.URLField(
+        blank=True, verbose_name="Liên kết bài viết bên ngoài"
+    )
     source_type = models.CharField(
         max_length=20,
         choices=[
-            ('manual', 'Tự viết'),
-            ('word', 'Từ Word'),
-            ('external', 'Từ liên kết')
+            ("manual", "Tự viết"),
+            ("word", "Từ Word"),
+            ("external", "Từ liên kết"),
         ],
-        default='manual',
-        verbose_name="Nguồn bài viết"
+        default="manual",
+        verbose_name="Nguồn bài viết",
     )
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name="Trạng thái")
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="draft",
+        verbose_name="Trạng thái",
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Ngày cập nhật")
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, verbose_name="Tác giả")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name="Tác giả",
+    )
     order = models.PositiveIntegerField(default=0, verbose_name="Thứ tự hiển thị")
     is_active = models.BooleanField(default=True, verbose_name="Kích hoạt")
 
@@ -724,26 +1085,33 @@ class About(models.Model):
 
     class Meta:
         verbose_name_plural = "Bài viết trang giới thiệu"
-        ordering = ['order', '-created_at']
+        ordering = ["order", "-created_at"]
 
 
 # 26. Thông tin cá nhân người dùng
 class CustomerProfile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile', verbose_name="Người dùng")
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="profile",
+        verbose_name="Người dùng",
+    )
 
     phone = models.CharField(max_length=15, blank=True, verbose_name="Số điện thoại")
     address = models.TextField(blank=True, verbose_name="Địa chỉ")
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, verbose_name="Ảnh đại diện")
+    avatar = models.ImageField(
+        upload_to="avatars/", null=True, blank=True, verbose_name="Ảnh đại diện"
+    )
     birth_date = models.DateField(null=True, blank=True, verbose_name="Ngày sinh")
     gender = models.CharField(
         max_length=10,
         choices=[
-            ('male', 'Nam'),
-            ('female', 'Nữ'),
-            ('other', 'Khác'),
+            ("male", "Nam"),
+            ("female", "Nữ"),
+            ("other", "Khác"),
         ],
         blank=True,
-        verbose_name="Giới tính"
+        verbose_name="Giới tính",
     )
 
     bio = models.TextField(max_length=500, blank=True, verbose_name="Tiểu sử")
@@ -760,18 +1128,22 @@ class CustomerProfile(models.Model):
     preferred_language = models.CharField(
         max_length=10,
         choices=[
-            ('vi', 'Tiếng Việt'),
-            ('en', 'English'),
+            ("vi", "Tiếng Việt"),
+            ("en", "English"),
         ],
-        default='vi',
-        verbose_name="Ngôn ngữ ưu tiên"
+        default="vi",
+        verbose_name="Ngôn ngữ ưu tiên",
     )
-    email_notifications = models.BooleanField(default=True, verbose_name="Thông báo email")
+    email_notifications = models.BooleanField(
+        default=True, verbose_name="Thông báo email"
+    )
     sms_notifications = models.BooleanField(default=False, verbose_name="Thông báo SMS")
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
-    last_login_ip = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP đăng nhập cuối")
+    last_login_ip = models.GenericIPAddressField(
+        null=True, blank=True, verbose_name="IP đăng nhập cuối"
+    )
 
     def __str__(self):
         return f"Profile của {self.user.email}"
@@ -779,11 +1151,13 @@ class CustomerProfile(models.Model):
     class Meta:
         verbose_name = "Thông tin người dùng"
         verbose_name_plural = "Thông tin người dùng"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     @property
     def full_name(self):
-        return f"{self.user.first_name} {self.user.last_name}".strip() or self.user.email
+        return (
+            f"{self.user.first_name} {self.user.last_name}".strip() or self.user.email
+        )
 
     @property
     def display_name(self):
@@ -793,14 +1167,31 @@ class CustomerProfile(models.Model):
     def age(self):
         if self.birth_date:
             from datetime import date
+
             today = date.today()
-            return today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
+            return (
+                today.year
+                - self.birth_date.year
+                - (
+                    (today.month, today.day)
+                    < (self.birth_date.month, self.birth_date.day)
+                )
+            )
         return None
 
     def get_completion_percentage(self):
         fields = [
-            self.phone, self.address, self.avatar, self.birth_date, self.gender,
-            self.bio, self.website, self.facebook, self.instagram, self.twitter, self.linkedin
+            self.phone,
+            self.address,
+            self.avatar,
+            self.birth_date,
+            self.gender,
+            self.bio,
+            self.website,
+            self.facebook,
+            self.instagram,
+            self.twitter,
+            self.linkedin,
         ]
         filled_fields = sum(1 for field in fields if field)
         return round((filled_fields / len(fields)) * 100, 1)
@@ -809,91 +1200,136 @@ class CustomerProfile(models.Model):
 # 27. Tin tức
 class News(models.Model):
     STATUS_CHOICES = (
-        ('draft', 'Bản nháp'),
-        ('published', 'Đã xuất bản'),
-        ('archived', 'Đã lưu trữ'),
+        ("draft", "Bản nháp"),
+        ("published", "Đã xuất bản"),
+        ("archived", "Đã lưu trữ"),
     )
 
     CATEGORY_CHOICES = (
-        ('promotion', 'Khuyến mãi'),
-        ('event', 'Sự kiện'),
-        ('product', 'Sản phẩm mới'),
-        ('company', 'Tin công ty'),
-        ('other', 'Khác'),
+        ("promotion", "Khuyến mãi"),
+        ("event", "Sự kiện"),
+        ("product", "Sản phẩm mới"),
+        ("company", "Tin công ty"),
+        ("other", "Khác"),
     )
 
     title = models.CharField(max_length=255, verbose_name="Tiêu đề")
     slug = models.SlugField(unique=True, max_length=255, verbose_name="Slug")
     summary = models.TextField(max_length=500, blank=True, verbose_name="Tóm tắt")
     content = models.TextField(verbose_name="Nội dung")
-    image = models.ImageField(upload_to='news/', null=True, blank=True, verbose_name="Hình ảnh")
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='other', verbose_name="Danh mục")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name="Trạng thái")
+    image = models.ImageField(
+        upload_to="news/", null=True, blank=True, verbose_name="Hình ảnh"
+    )
+    category = models.CharField(
+        max_length=20,
+        choices=CATEGORY_CHOICES,
+        default="other",
+        verbose_name="Danh mục",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="draft",
+        verbose_name="Trạng thái",
+    )
     is_featured = models.BooleanField(default=False, verbose_name="Tin nổi bật")
     views_count = models.PositiveIntegerField(default=0, verbose_name="Lượt xem")
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Tác giả")
-    published_at = models.DateTimeField(null=True, blank=True, verbose_name="Ngày xuất bản")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Tác giả",
+    )
+    published_at = models.DateTimeField(
+        null=True, blank=True, verbose_name="Ngày xuất bản"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
-    meta_description = models.CharField(max_length=255, blank=True, verbose_name="Meta Description")
-    meta_keywords = models.CharField(max_length=255, blank=True, verbose_name="Meta Keywords")
+    meta_description = models.CharField(
+        max_length=255, blank=True, verbose_name="Meta Description"
+    )
+    meta_keywords = models.CharField(
+        max_length=255, blank=True, verbose_name="Meta Keywords"
+    )
 
     def __str__(self):
         return self.title
 
     class Meta:
         verbose_name_plural = "Tin tức"
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     @property
     def is_published(self):
-        return self.status == 'published'
+        return self.status == "published"
 
     def increment_views(self):
         self.views_count += 1
-        self.save(update_fields=['views_count'])
+        self.save(update_fields=["views_count"])
 
 
 # 28. Đánh giá sản phẩm
 class Review(models.Model):
     STATUS_CHOICES = (
-        ('pending', 'Chờ duyệt'),
-        ('approved', 'Đã duyệt'),
-        ('rejected', 'Từ chối'),
+        ("pending", "Chờ duyệt"),
+        ("approved", "Đã duyệt"),
+        ("rejected", "Từ chối"),
     )
 
-    order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE, related_name='reviews', verbose_name="Món trong đơn hàng")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reviews', verbose_name="Người dùng")
-    rating = models.IntegerField(verbose_name="Điểm đánh giá", choices=[(i, f"{i} sao") for i in range(1, 6)])
+    order_item = models.ForeignKey(
+        OrderItem,
+        on_delete=models.CASCADE,
+        related_name="reviews",
+        verbose_name="Món trong đơn hàng",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="reviews",
+        verbose_name="Người dùng",
+    )
+    rating = models.IntegerField(
+        verbose_name="Điểm đánh giá", choices=[(i, f"{i} sao") for i in range(1, 6)]
+    )
     content = models.TextField(verbose_name="Nội dung đánh giá")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Trạng thái")
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending",
+        verbose_name="Trạng thái",
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày đánh giá")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
     admin_reply = models.TextField(blank=True, verbose_name="Phản hồi của cửa hàng")
-    admin_reply_at = models.DateTimeField(null=True, blank=True, verbose_name="Ngày phản hồi")
+    admin_reply_at = models.DateTimeField(
+        null=True, blank=True, verbose_name="Ngày phản hồi"
+    )
 
     class Meta:
         verbose_name_plural = "Đánh giá"
-        unique_together = ['order_item', 'user']
-        ordering = ['-created_at']
+        unique_together = ["order_item", "user"]
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"Đánh giá #{self.id} - {self.user.email} ({self.rating} sao)"
 
     @property
     def is_approved(self):
-        return self.status == 'approved'
+        return self.status == "approved"
 
 
 # 29. Hình ảnh đánh giá
 class ReviewImage(models.Model):
-    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='images', verbose_name="Đánh giá")
-    image = models.ImageField(upload_to='reviews/', verbose_name="Hình ảnh")
+    review = models.ForeignKey(
+        Review, on_delete=models.CASCADE, related_name="images", verbose_name="Đánh giá"
+    )
+    image = models.ImageField(upload_to="reviews/", verbose_name="Hình ảnh")
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tải lên")
 
     class Meta:
         verbose_name_plural = "Hình ảnh đánh giá"
-        ordering = ['uploaded_at']
+        ordering = ["uploaded_at"]
 
     def __str__(self):
         return f"Ảnh đánh giá #{self.id}"
@@ -902,43 +1338,86 @@ class ReviewImage(models.Model):
 # 30. Đánh giá đơn hàng
 class OrderReview(models.Model):
     STATUS_CHOICES = (
-        ('pending', 'Chờ duyệt'),
-        ('approved', 'Đã duyệt'),
-        ('rejected', 'Từ chối'),
+        ("pending", "Chờ duyệt"),
+        ("approved", "Đã duyệt"),
+        ("rejected", "Từ chối"),
     )
 
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_reviews', verbose_name="Đơn hàng")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='order_reviews', verbose_name="Người dùng")
-    overall_rating = models.IntegerField(verbose_name="Đánh giá tổng thể", choices=[(i, f"{i} sao") for i in range(1, 6)])
-    food_quality = models.IntegerField(verbose_name="Chất lượng món ăn", choices=[(i, f"{i} sao") for i in range(1, 6)], null=True, blank=True)
-    service_quality = models.IntegerField(verbose_name="Chất lượng dịch vụ", choices=[(i, f"{i} sao") for i in range(1, 6)], null=True, blank=True)
-    delivery_speed = models.IntegerField(verbose_name="Tốc độ giao hàng", choices=[(i, f"{i} sao") for i in range(1, 6)], null=True, blank=True)
-    packaging_quality = models.IntegerField(verbose_name="Chất lượng đóng gói", choices=[(i, f"{i} sao") for i in range(1, 6)], null=True, blank=True)
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="order_reviews",
+        verbose_name="Đơn hàng",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="order_reviews",
+        verbose_name="Người dùng",
+    )
+    overall_rating = models.IntegerField(
+        verbose_name="Đánh giá tổng thể", choices=[(i, f"{i} sao") for i in range(1, 6)]
+    )
+    food_quality = models.IntegerField(
+        verbose_name="Chất lượng món ăn",
+        choices=[(i, f"{i} sao") for i in range(1, 6)],
+        null=True,
+        blank=True,
+    )
+    service_quality = models.IntegerField(
+        verbose_name="Chất lượng dịch vụ",
+        choices=[(i, f"{i} sao") for i in range(1, 6)],
+        null=True,
+        blank=True,
+    )
+    delivery_speed = models.IntegerField(
+        verbose_name="Tốc độ giao hàng",
+        choices=[(i, f"{i} sao") for i in range(1, 6)],
+        null=True,
+        blank=True,
+    )
+    packaging_quality = models.IntegerField(
+        verbose_name="Chất lượng đóng gói",
+        choices=[(i, f"{i} sao") for i in range(1, 6)],
+        null=True,
+        blank=True,
+    )
     content = models.TextField(verbose_name="Nội dung đánh giá", blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Trạng thái")
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending",
+        verbose_name="Trạng thái",
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày đánh giá")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
     admin_reply = models.TextField(blank=True, verbose_name="Phản hồi của cửa hàng")
-    admin_reply_at = models.DateTimeField(null=True, blank=True, verbose_name="Ngày phản hồi")
+    admin_reply_at = models.DateTimeField(
+        null=True, blank=True, verbose_name="Ngày phản hồi"
+    )
 
     class Meta:
         verbose_name_plural = "Đánh giá đơn hàng"
-        unique_together = ['order', 'user']
-        ordering = ['-created_at']
+        unique_together = ["order", "user"]
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"Đánh giá ĐH #{self.order.id} - {self.user.email} ({self.overall_rating} sao)"
 
     @property
     def is_approved(self):
-        return self.status == 'approved'
+        return self.status == "approved"
 
     def get_average_rating(self):
         ratings = []
-        if self.food_quality: ratings.append(self.food_quality)
-        if self.service_quality: ratings.append(self.service_quality)
-        if self.delivery_speed: ratings.append(self.delivery_speed)
-        if self.packaging_quality: ratings.append(self.packaging_quality)
+        if self.food_quality:
+            ratings.append(self.food_quality)
+        if self.service_quality:
+            ratings.append(self.service_quality)
+        if self.delivery_speed:
+            ratings.append(self.delivery_speed)
+        if self.packaging_quality:
+            ratings.append(self.packaging_quality)
         if ratings:
             return sum(ratings) / len(ratings)
         return self.overall_rating
@@ -946,18 +1425,47 @@ class OrderReview(models.Model):
 
 # ========== CONTACT SETTINGS ==========
 
+
 # 31. Cài đặt trang Liên hệ
 class ContactSettings(models.Model):
-    site_name = models.CharField(max_length=200, default='ZenMart', verbose_name="Tên website")
-    intro_text = models.TextField(blank=True, default='Có câu hỏi hoặc góp ý? Chúng tôi luôn sẵn sàng lắng nghe!', verbose_name="Lời giới thiệu")
-    email = models.TextField(blank=True, default='1250080068@sv.hcmunre.edu.vn\n1250080065@sv.hcmunre.edu.vn\n1250080110@sv.hcmunre.edu.vn', verbose_name="Email nhận liên hệ (mỗi dòng 1 email)")
-    phone = models.CharField(max_length=100, blank=True, default='1900-xxxx', verbose_name="Hotline")
-    address = models.TextField(blank=True, default='TP. Hồ Chí Minh, Việt Nam', verbose_name="Địa chỉ")
-    working_hours = models.CharField(max_length=200, blank=True, default='Tất cả các ngày: 8:00 - 22:00', verbose_name="Giờ làm việc")
-    smtp_host = models.CharField(max_length=200, default='smtp.gmail.com', verbose_name="SMTP Host")
+    site_name = models.CharField(
+        max_length=200, default="ZenMart", verbose_name="Tên website"
+    )
+    intro_text = models.TextField(
+        blank=True,
+        default="Có câu hỏi hoặc góp ý? Chúng tôi luôn sẵn sàng lắng nghe!",
+        verbose_name="Lời giới thiệu",
+    )
+    email = models.TextField(
+        blank=True,
+        default="1250080068@sv.hcmunre.edu.vn\n1250080065@sv.hcmunre.edu.vn\n1250080110@sv.hcmunre.edu.vn",
+        verbose_name="Email nhận liên hệ (mỗi dòng 1 email)",
+    )
+    phone = models.CharField(
+        max_length=100, blank=True, default="1900-xxxx", verbose_name="Hotline"
+    )
+    address = models.TextField(
+        blank=True, default="TP. Hồ Chí Minh, Việt Nam", verbose_name="Địa chỉ"
+    )
+    working_hours = models.CharField(
+        max_length=200,
+        blank=True,
+        default="Tất cả các ngày: 8:00 - 22:00",
+        verbose_name="Giờ làm việc",
+    )
+    smtp_host = models.CharField(
+        max_length=200, default="smtp.gmail.com", verbose_name="SMTP Host"
+    )
     smtp_port = models.IntegerField(default=587, verbose_name="SMTP Port")
-    smtp_user = models.CharField(max_length=200, blank=True, default='duongdanhuy25@gmail.com', verbose_name="SMTP Email gửi")
-    smtp_password = models.CharField(max_length=200, blank=True, default='', verbose_name="SMTP App Password")
+    smtp_user = models.CharField(
+        max_length=200,
+        blank=True,
+        default="duongdanhuy25@gmail.com",
+        verbose_name="SMTP Email gửi",
+    )
+    smtp_password = models.CharField(
+        max_length=200, blank=True, default="", verbose_name="SMTP App Password"
+    )
     smtp_use_tls = models.BooleanField(default=True, verbose_name="Sử dụng TLS")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật")
 
@@ -968,21 +1476,68 @@ class ContactSettings(models.Model):
         return f"Cài đặt Liên hệ - {self.site_name}"
 
     def get_emails(self):
-        return [e.strip() for e in self.email.split('\n') if e.strip()]
+        return [e.strip() for e in self.email.split("\n") if e.strip()]
 
 
 # ========== WISHLIST ==========
 
+
 # 32. Danh sách yêu thích
 class Wishlist(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wishlist_items', verbose_name="Người dùng")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='wishlist_items', verbose_name="Sản phẩm")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="wishlist_items",
+        verbose_name="Người dùng",
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="wishlist_items",
+        verbose_name="Sản phẩm",
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày thêm")
 
     class Meta:
         verbose_name_plural = "Danh sách yêu thích"
-        unique_together = ['user', 'product']
-        ordering = ['-created_at']
+        unique_together = ["user", "product"]
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.user.email} - {self.product.name}"
+
+
+class Voucher(models.Model):
+    DISCOUNT_TYPE_CHOICES = [
+        ("percentage", "Phần trăm (%)"),
+        ("fixed", "Số tiền cố định (VNĐ)"),
+    ]
+
+    code = models.CharField(max_length=50, unique=True, verbose_name="Mã giảm giá")
+    description = models.CharField(max_length=255, blank=True, verbose_name="Mô tả")
+    discount_type = models.CharField(
+        max_length=20,
+        choices=DISCOUNT_TYPE_CHOICES,
+        default="percentage",
+        verbose_name="Loại giảm giá",
+    )
+    discount_value = models.FloatField(verbose_name="Giá trị giảm")
+    min_order_value = models.FloatField(
+        default=0, verbose_name="Giá trị đơn hàng tối thiểu"
+    )
+    max_discount_amount = models.FloatField(
+        null=True, blank=True, verbose_name="Giảm tối đa (cho loại %)"
+    )
+
+    valid_from = models.DateTimeField(default=timezone.now, verbose_name="Bắt đầu")
+    valid_to = models.DateTimeField(verbose_name="Kết thúc")
+
+    usage_limit = models.IntegerField(default=100, verbose_name="Số lượt dùng tối đa")
+    used_count = models.IntegerField(default=0, verbose_name="Đã sử dụng")
+    is_active = models.BooleanField(default=True, verbose_name="Kích hoạt")
+
+    class Meta:
+        verbose_name_plural = "Mã Giảm Giá (Voucher)"
+
+    def __str__(self):
+        return self.code

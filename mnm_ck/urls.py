@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
@@ -21,18 +22,19 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 # Custom error handlers
-handler400 = 'eshop.error_views.bad_request'
-handler403 = 'eshop.error_views.permission_denied'
-handler404 = 'eshop.error_views.page_not_found'
-handler500 = 'eshop.error_views.server_error'
+handler400 = "eshop.error_views.bad_request"
+handler403 = "eshop.error_views.permission_denied"
+handler404 = "eshop.error_views.page_not_found"
+handler500 = "eshop.error_views.server_error"
 
 urlpatterns = [
-    path('', include('eshop.urls'), name='eshop'),
-    path('admin/', admin.site.urls),
+    path("", include("eshop.urls"), name="eshop"),
+    path("admin/", admin.site.urls),
     # API endpoints
-    path('api/', include('users.urls')),
+    path("api/", include("users.urls")),
     # Dashboard (includes checkout API at /dashboard/api/checkout/)
-    path('dashboard/', include('dashboard.urls')),
+    path("dashboard/", include("dashboard.urls")),
+    path("__reload__/", include("django_browser_reload.urls")),
 ]
 
 # Serve media files in development
