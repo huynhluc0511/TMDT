@@ -44,9 +44,24 @@ from .forms import (
     ForgotPasswordForm,
 )
 from .error_views import error_view
-
+from decimal import Decimal
+from django.http import JsonResponse
+from django.utils import timezone
+from dashboard.models import Voucher
+from .cart import Cart
 from decimal import Decimal
 from dashboard.models import Product, Voucher  # Thêm Voucher vào đây
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.utils import timezone
+from decimal import Decimal
+from django.contrib import messages
+
+# Import model từ dashboard
+from dashboard.models import Voucher, Product, Order, OrderItem, PaymentMethod
+
+# Import class Cart
+from .cart import Cart
 
 # ==================== STOREFRONT ====================
 
@@ -375,85 +390,6 @@ def cart_update(request, product_id):
     quantity = int(request.POST.get("quantity", 1))
     cart.update(product, quantity)
     return redirect("eshop:cart")
-
-
-def apply_voucher(request):
-    if request.method == "POST":
-        cart = Cart(request)
-
-        # Trường hợp Hủy chọn voucher
-        if request.POST.get("remove") == "true":
-            cart.remove_voucher()
-            return JsonResponse(
-                {
-                    "status": "success",
-                    "message": "Đã hủy mã giảm giá",
-                    "new_total": cart.get_total_price(),
-                }
-            )
-
-        # Trường hợp Chọn voucher
-        voucher_id = request.POST.get("voucher_id")
-        if not voucher_id:
-            return JsonResponse({"status": "error", "message": "Vui lòng chọn mã."})
-
-        cart_total = Decimal(str(cart.get_total_price()))
-
-        try:
-            voucher = Voucher.objects.get(id=voucher_id)
-
-            # Kiểm tra điều kiện an toàn (đề phòng user sửa ID)
-            if not voucher.is_active or voucher.valid_to < timezone.now():
-                return JsonResponse(
-                    {
-                        "status": "error",
-                        "message": "Mã giảm giá không hợp lệ hoặc đã hết hạn.",
-                    }
-                )
-            if voucher.used_count >= voucher.usage_limit:
-                return JsonResponse(
-                    {"status": "error", "message": "Mã giảm giá đã hết lượt sử dụng."}
-                )
-            if cart_total < voucher.min_order_value:
-                return JsonResponse(
-                    {
-                        "status": "error",
-                        "message": f"Đơn hàng phải từ {voucher.min_order_value:,.0f}đ.",
-                    }
-                )
-
-            # Tính tiền giảm
-            discount = Decimal("0.00")
-            if voucher.discount_type == "percentage":
-                discount = cart_total * (
-                    Decimal(voucher.discount_value) / Decimal("100")
-                )
-                if (
-                    voucher.max_discount_amount
-                    and discount > voucher.max_discount_amount
-                ):
-                    discount = voucher.max_discount_amount
-            else:  # fixed
-                discount = voucher.discount_value
-
-            # Lưu vào session
-            cart.set_voucher(voucher.id, discount)
-
-            return JsonResponse(
-                {
-                    "status": "success",
-                    "message": "Áp dụng thành công!",
-                    "discount": float(discount),
-                    "new_total": float(cart_total - discount),
-                }
-            )
-
-        except Voucher.DoesNotExist:
-            return JsonResponse(
-                {"status": "error", "message": "Mã giảm giá không tồn tại."}
-            )
-
-    return JsonResponse({"status": "error", "message": "Yêu cầu không hợp lệ"})
 
 
 # ==================== CHECKOUT ====================
@@ -1289,3 +1225,87 @@ def order_detail(request, order_id):
             "order": order,
         },
     )
+
+
+def apply_voucher(request):
+    if request.method == "POST":
+        cart = Cart(request)
+
+        # 1. Xử lý khi khách bấm HỦY mã
+        if request.POST.get("remove") == "true":
+            cart.remove_voucher()
+            return JsonResponse(
+                {
+                    "status": "success",
+                    "message": "Đã hủy mã giảm giá",
+                    "new_total": float(cart.get_total_price()),
+                }
+            )
+
+        # 2. Xử lý khi khách CHỌN mã
+        voucher_id = request.POST.get("voucher_id")
+        if not voucher_id:
+            return JsonResponse({"status": "error", "message": "Vui lòng chọn mã."})
+
+        # Ép kiểu về float để tránh lỗi tính toán
+        cart_total = float(cart.get_total_price())
+
+        try:
+            voucher = Voucher.objects.get(id=voucher_id)
+
+            # Kiểm tra điều kiện
+            if not voucher.is_active or voucher.valid_to < timezone.now():
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "message": "Mã giảm giá không hợp lệ hoặc đã hết hạn.",
+                    }
+                )
+            if voucher.used_count >= voucher.usage_limit:
+                return JsonResponse(
+                    {"status": "error", "message": "Mã giảm giá đã hết lượt sử dụng."}
+                )
+            if cart_total < float(voucher.min_order_value):
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "message": f"Đơn hàng phải từ {voucher.min_order_value:,.0f}đ.",
+                    }
+                )
+
+            # Tính tiền giảm
+            discount = 0.0
+            if voucher.discount_type == "percentage":
+                discount = cart_total * (float(voucher.discount_value) / 100.0)
+                if voucher.max_discount_amount and discount > float(
+                    voucher.max_discount_amount
+                ):
+                    discount = float(voucher.max_discount_amount)
+            else:  # fixed
+                discount = float(voucher.discount_value)
+                if discount > cart_total:
+                    discount = cart_total
+
+            # Lưu vào session thông qua class Cart
+            cart.set_voucher(voucher.id, discount)
+
+            return JsonResponse(
+                {
+                    "status": "success",
+                    "message": "Áp dụng thành công!",
+                    "discount": discount,
+                    "new_total": cart_total - discount,
+                }
+            )
+
+        except Voucher.DoesNotExist:
+            return JsonResponse(
+                {"status": "error", "message": "Mã giảm giá không tồn tại."}
+            )
+        except Exception as e:
+            print(f"LỖI VOUCHER: {str(e)}")
+            return JsonResponse(
+                {"status": "error", "message": f"Lỗi hệ thống: {str(e)}"}
+            )
+
+    return JsonResponse({"status": "error", "message": "Yêu cầu không hợp lệ"})
